@@ -66,13 +66,13 @@
             height: 50px;
             box-sizing: border-box;
             background-color: var(--tg-theme-secondary-bg-color, var(--input-bg));
-            border: 1px solid var(--tg-theme-hint-color, var(--input-border));
+            border: none;
             color: var(--tg-theme-text-color, var(--text-color));
             border-radius: 10px;
             padding: 12px;
             font-size: 16px;
             outline: none;
-            transition: border-color 0.2s;
+            transition: box-shadow 0.2s;
         }
 
         select {
@@ -80,14 +80,14 @@
             height: 50px;
             box-sizing: border-box;
             background-color: var(--tg-theme-secondary-bg-color, var(--input-bg));
-            border: 1px solid var(--tg-theme-hint-color, var(--input-border));
+            border: none;
             color: var(--tg-theme-text-color, var(--text-color));
             border-radius: 10px;
             padding: 12px;
             padding-right: 40px;
             font-size: 16px;
             outline: none;
-            transition: border-color 0.2s;
+            transition: box-shadow 0.2s;
             appearance: none;
             -webkit-appearance: none;
             -moz-appearance: none;
@@ -96,7 +96,7 @@
         input[type="text"]:focus,
         #date-input:focus,
         select:focus {
-            border-color: var(--tg-theme-button-color, var(--button-color));
+            box-shadow: 0 0 0 2px var(--tg-theme-button-color, var(--button-color));
         }
 
         /* Stepper Height Alignment */
@@ -105,7 +105,7 @@
             height: 50px;
             box-sizing: border-box;
             background-color: var(--tg-theme-secondary-bg-color, var(--input-bg));
-            border: 1px solid var(--tg-theme-hint-color, var(--input-border));
+            border: none;
             color: var(--tg-theme-text-color, var(--text-color));
             border-radius: 10px;
             display: flex;
