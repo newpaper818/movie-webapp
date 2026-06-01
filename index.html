@@ -47,6 +47,7 @@
             margin-bottom: 16px;
             display: flex;
             flex-direction: column;
+            position: relative;
         }
 
         label {
@@ -58,9 +59,13 @@
             letter-spacing: 0.5px;
         }
 
+        /* Aligned Heights and Box Sizing */
         input[type="text"],
-        input[type="date"],
+        #date-input,
         select {
+            width: 100%;
+            height: 50px;
+            box-sizing: border-box;
             background-color: var(--tg-theme-secondary-bg-color, var(--input-bg));
             border: 1px solid var(--tg-theme-hint-color, var(--input-border));
             color: var(--tg-theme-text-color, var(--text-color));
@@ -68,25 +73,28 @@
             padding: 12px;
             font-size: 16px;
             outline: none;
-            box-sizing: border-box;
             transition: border-color 0.2s;
         }
 
         input[type="text"]:focus,
-        input[type="date"]:focus,
+        #date-input:focus,
         select:focus {
             border-color: var(--tg-theme-button-color, var(--button-color));
         }
 
-        /* Stepper Layout */
+        /* Stepper Height Alignment */
         .stepper {
+            width: 100%;
+            height: 50px;
+            box-sizing: border-box;
+            background-color: var(--tg-theme-secondary-bg-color, var(--input-bg));
+            border: 1px solid var(--tg-theme-hint-color, var(--input-border));
+            color: var(--tg-theme-text-color, var(--text-color));
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background-color: var(--tg-theme-secondary-bg-color, var(--input-bg));
-            border: 1px solid var(--tg-theme-hint-color, var(--input-border));
-            border-radius: 10px;
-            padding: 4px;
+            padding: 0 4px;
         }
 
         .stepper-btn {
@@ -94,8 +102,8 @@
             border: none;
             color: var(--tg-theme-button-color, var(--button-color));
             font-size: 24px;
-            width: 48px;
-            height: 48px;
+            width: 42px;
+            height: 42px;
             cursor: pointer;
             outline: none;
             display: flex;
@@ -141,6 +149,22 @@
             margin-top: 4px;
             display: none;
         }
+
+        /* Custom Calendar Popup */
+        #calendar-popup {
+            display: none;
+            position: absolute;
+            top: 75px;
+            left: 0;
+            right: 0;
+            background-color: var(--tg-theme-secondary-bg-color, var(--input-bg));
+            border: 1px solid var(--tg-theme-hint-color, var(--input-border));
+            border-radius: 12px;
+            z-index: 1000;
+            padding: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+            box-sizing: border-box;
+        }
     </style>
 </head>
 <body>
@@ -157,10 +181,25 @@
         <div id="title-error" class="error-message">⚠️ Movie title cannot be empty.</div>
     </div>
 
-    <!-- Date (Datepicker) -->
+    <!-- Date (Custom Calendar Input with Reset Button) -->
     <div class="form-group">
-        <label for="date">Date (Optional)</label>
-        <input type="date" id="date">
+        <label for="date-input">Date (Optional)</label>
+        <div style="position: relative; display: flex; align-items: center; width: 100%;">
+            <input type="text" id="date-input" readonly value="ANY DATE" style="cursor: pointer; padding-right: 40px;">
+            <button type="button" id="reset-date-btn" style="position: absolute; right: 10px; background: transparent; border: none; color: var(--tg-theme-hint-color, var(--hint-color)); font-size: 18px; cursor: pointer; display: none;">✕</button>
+        </div>
+        
+        <!-- Custom Calendar Overlay -->
+        <div id="calendar-popup">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <button type="button" id="prev-month-btn" style="background: transparent; border: none; color: var(--tg-theme-button-color, var(--button-color)); font-size: 18px; cursor: pointer; padding: 4px 8px;">◀</button>
+                <span id="calendar-month-year" style="font-weight: 600; font-size: 15px;"></span>
+                <button type="button" id="next-month-btn" style="background: transparent; border: none; color: var(--tg-theme-button-color, var(--button-color)); font-size: 18px; cursor: pointer; padding: 4px 8px;">▶</button>
+            </div>
+            <div id="calendar-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; font-size: 13px;">
+                <!-- Days header (Su, Mo, ...) then dates -->
+            </div>
+        </div>
     </div>
 
     <!-- Time Selector -->
@@ -176,7 +215,7 @@
         <label>Seats (People)</label>
         <div class="stepper">
             <button type="button" class="stepper-btn" onclick="adjustSeats(-1)">−</button>
-            <span class="stepper-value" id="seats-value">3</span>
+            <span class="stepper-value" id="seats-value">1</span>
             <button type="button" class="stepper-btn" onclick="adjustSeats(1)">+</button>
         </div>
     </div>
@@ -224,8 +263,8 @@
             timeSelect.appendChild(option);
         }
 
-        // 3. Seats Stepper logic
-        let seats = 3;
+        // 3. Seats Stepper logic (Default set to 1)
+        let seats = 1;
         const seatsValEl = document.getElementById('seats-value');
         
         function adjustSeats(amount) {
@@ -233,11 +272,154 @@
             seatsValEl.textContent = seats;
         }
 
-        // 4. Form Submission
+        // 4. Custom Calendar Logic
+        let currentDate = new Date();
+        let selectedDate = null; // Store selected Date object, null for ANY DATE
+
+        const dateInput = document.getElementById('date-input');
+        const resetDateBtn = document.getElementById('reset-date-btn');
+        const calendarPopup = document.getElementById('calendar-popup');
+        const calendarMonthYear = document.getElementById('calendar-month-year');
+        const calendarGrid = document.getElementById('calendar-grid');
+
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const dayNames = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+
+        function renderCalendar() {
+            calendarGrid.innerHTML = '';
+            
+            // Render Day Headers (Su, Mo, Tu...)
+            dayNames.forEach(day => {
+                const header = document.createElement('div');
+                header.textContent = day;
+                header.style.color = 'var(--tg-theme-hint-color, var(--hint-color))';
+                header.style.fontWeight = '500';
+                header.style.paddingBottom = '6px';
+                calendarGrid.appendChild(header);
+            });
+
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            calendarMonthYear.textContent = `${monthNames[month]} ${year}`;
+            
+            const firstDay = new Date(year, month, 1).getDay();
+            const totalDays = new Date(year, month + 1, 0).getDate();
+            
+            // Render Blank Days for layout spacing
+            for (let i = 0; i < firstDay; i++) {
+                const blank = document.createElement('div');
+                calendarGrid.appendChild(blank);
+            }
+            
+            // Render Days
+            for (let day = 1; day <= totalDays; day++) {
+                const dayCell = document.createElement('div');
+                dayCell.textContent = day;
+                dayCell.style.cursor = 'pointer';
+                dayCell.style.padding = '8px 0';
+                dayCell.style.borderRadius = '8px';
+                dayCell.style.transition = 'background 0.15s, color 0.15s';
+                
+                // Hover effect
+                dayCell.addEventListener('mouseenter', () => {
+                    if (!dayCell.classList.contains('selected')) {
+                        dayCell.style.backgroundColor = 'var(--input-border)';
+                    }
+                });
+                dayCell.addEventListener('mouseleave', () => {
+                    if (!dayCell.classList.contains('selected')) {
+                        dayCell.style.backgroundColor = 'transparent';
+                    }
+                });
+
+                // Check if this cell is currently selected
+                if (selectedDate && 
+                    selectedDate.getFullYear() === year && 
+                    selectedDate.getMonth() === month && 
+                    selectedDate.getDate() === day) {
+                    dayCell.classList.add('selected');
+                    dayCell.style.backgroundColor = 'var(--tg-theme-button-color, var(--button-color))';
+                    dayCell.style.color = 'var(--tg-theme-button-text-color, var(--button-text-color))';
+                    dayCell.style.fontWeight = '600';
+                }
+                
+                dayCell.addEventListener('click', () => {
+                    selectDate(new Date(year, month, day));
+                });
+                
+                calendarGrid.appendChild(dayCell);
+            }
+        }
+
+        function selectDate(date) {
+            selectedDate = date;
+            dateInput.value = formatShowDate(date);
+            resetDateBtn.style.display = 'block';
+            calendarPopup.style.display = 'none';
+        }
+
+        function resetDate() {
+            selectedDate = null;
+            dateInput.value = "ANY DATE";
+            resetDateBtn.style.display = 'none';
+            calendarPopup.style.display = 'none';
+        }
+
+        function formatShowDate(d) {
+            const day = d.getDate();
+            const month = monthNames[d.getMonth()];
+            const year = d.getFullYear();
+            return `${month} ${day}, ${year}`;
+        }
+
+        function formatValueDate(d) {
+            const day = d.getDate().toString().padStart(2, '0');
+            const month = (d.getMonth() + 1).toString().padStart(2, '0');
+            const year = d.getFullYear();
+            return `${year}-${month}-${day}`;
+        }
+
+        // Navigation
+        document.getElementById('prev-month-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        });
+
+        document.getElementById('next-month-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        });
+
+        // Show/Hide Calendar dropdown
+        dateInput.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isVisible = calendarPopup.style.display === 'block';
+            calendarPopup.style.display = isVisible ? 'none' : 'block';
+            if (!isVisible) {
+                renderCalendar();
+            }
+        });
+
+        resetDateBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            resetDate();
+        });
+
+        // Dismiss calendar when clicking outside
+        document.addEventListener('click', (event) => {
+            if (!calendarPopup.contains(event.target) && !dateInput.contains(event.target) && !resetDateBtn.contains(event.target)) {
+                calendarPopup.style.display = 'none';
+            }
+        });
+
+        // 5. Form Submission
         function submitForm() {
             const titleInput = document.getElementById('title');
             const title = titleInput.value.trim();
-            const date = document.getElementById('date').value;
+            const date = selectedDate ? formatValueDate(selectedDate) : "";
             const time = parseInt(document.getElementById('time').value);
 
             if (!title) {
@@ -250,7 +432,7 @@
 
             const payload = {
                 title: title,
-                date: date, // Will be YYYY-MM-DD or empty string
+                date: date, // YYYY-MM-DD or empty string
                 time: time,
                 people: seats
             };
