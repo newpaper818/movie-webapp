@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Add Movie Reservation</title>
+    <!-- Include Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-color: #17212b;
+            --text-color: #f5f6f7;
+            --button-color: #2481cc;
+            --button-text-color: #ffffff;
+            --input-bg: #202b36;
+            --input-border: #2f3e4e;
+            --hint-color: #7f91a4;
+        }
+
+        /* Adjust colors based on Telegram Theme if available */
+        body.telegram {
+            background-color: var(--tg-theme-bg-color, #17212b);
+            color: var(--tg-theme-text-color, #f5f6f7);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 16px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--tg-theme-hint-color, var(--hint-color));
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        select {
+            background-color: var(--tg-theme-secondary-bg-color, var(--input-bg));
+            border: 1px solid var(--tg-theme-hint-color, var(--input-border));
+            color: var(--tg-theme-text-color, var(--text-color));
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 16px;
+            outline: none;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        select:focus {
+            border-color: var(--tg-theme-button-color, var(--button-color));
+        }
+
+        /* Stepper Layout */
+        .stepper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: var(--tg-theme-secondary-bg-color, var(--input-bg));
+            border: 1px solid var(--tg-theme-hint-color, var(--input-border));
+            border-radius: 10px;
+            padding: 4px;
+        }
+
+        .stepper-btn {
+            background-color: transparent;
+            border: none;
+            color: var(--tg-theme-button-color, var(--button-color));
+            font-size: 24px;
+            width: 48px;
+            height: 48px;
+            cursor: pointer;
+            outline: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+        }
+
+        .stepper-btn:active {
+            opacity: 0.6;
+        }
+
+        .stepper-value {
+            font-size: 18px;
+            font-weight: 600;
+            width: 60px;
+            text-align: center;
+        }
+
+        /* Submit Button */
+        .submit-btn {
+            background-color: var(--tg-theme-button-color, var(--button-color));
+            color: var(--tg-theme-button-text-color, var(--button-text-color));
+            border: none;
+            border-radius: 10px;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: auto;
+            outline: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            transition: opacity 0.2s;
+        }
+
+        .submit-btn:active {
+            opacity: 0.85;
+        }
+
+        .error-message {
+            color: #ff595a;
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Add Movie Reservation</h2>
+
+    <!-- Movie Title (with Suggestions Datalist) -->
+    <div class="form-group">
+        <label for="title">Movie Title</label>
+        <input type="text" id="title" placeholder="Enter or select movie title" list="movie-suggestions" required autocomplete="off">
+        <datalist id="movie-suggestions">
+            <!-- Dynamic options populated from query params -->
+        </datalist>
+        <div id="title-error" class="error-message">⚠️ Movie title cannot be empty.</div>
+    </div>
+
+    <!-- Date (Datepicker) -->
+    <div class="form-group">
+        <label for="date">Date (Optional)</label>
+        <input type="date" id="date">
+    </div>
+
+    <!-- Time Selector -->
+    <div class="form-group">
+        <label for="time">Time (Hour)</label>
+        <select id="time">
+            <!-- Hours 0 to 23 -->
+        </select>
+    </div>
+
+    <!-- Seats Stepper -->
+    <div class="form-group">
+        <label>Seats (People)</label>
+        <div class="stepper">
+            <button type="button" class="stepper-btn" onclick="adjustSeats(-1)">−</button>
+            <span class="stepper-value" id="seats-value">3</span>
+            <button type="button" class="stepper-btn" onclick="adjustSeats(1)">+</button>
+        </div>
+    </div>
+
+    <!-- Submit -->
+    <button type="button" class="submit-btn" onclick="submitForm()">Add to List</button>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        
+        // Initialize and apply theme
+        tg.ready();
+        tg.expand(); // Expand the webapp to full screen height
+        
+        if (tg.colorScheme === 'dark' || tg.colorScheme === 'light') {
+            document.body.classList.add('telegram');
+        }
+
+        // 1. Populate Movie Suggestions from URL Query Param
+        const urlParams = new URLSearchParams(window.location.search);
+        const moviesQuery = urlParams.get('movies');
+        if (moviesQuery) {
+            try {
+                const movies = decodeURIComponent(moviesQuery).split(',');
+                const datalist = document.getElementById('movie-suggestions');
+                movies.forEach(movie => {
+                    if (movie.trim()) {
+                        const option = document.createElement('option');
+                        option.value = movie.trim();
+                        datalist.appendChild(option);
+                    }
+                });
+            } catch (e) {
+                console.error("Failed to parse movie suggestions:", e);
+            }
+        }
+
+        // 2. Populate Time Selector (0 to 23)
+        const timeSelect = document.getElementById('time');
+        for (let h = 0; h <= 23; h++) {
+            const option = document.createElement('option');
+            option.value = h;
+            option.textContent = `${h.toString().padStart(2, '0')}:00`;
+            if (h === 12) option.selected = true; // Default to 12:00
+            timeSelect.appendChild(option);
+        }
+
+        // 3. Seats Stepper logic
+        let seats = 3;
+        const seatsValEl = document.getElementById('seats-value');
+        
+        function adjustSeats(amount) {
+            seats = Math.max(1, Math.min(8, seats + amount)); // Limit seats between 1 and 8
+            seatsValEl.textContent = seats;
+        }
+
+        // 4. Form Submission
+        function submitForm() {
+            const titleInput = document.getElementById('title');
+            const title = titleInput.value.trim();
+            const date = document.getElementById('date').value;
+            const time = parseInt(document.getElementById('time').value);
+
+            if (!title) {
+                document.getElementById('title-error').style.display = 'block';
+                titleInput.focus();
+                return;
+            } else {
+                document.getElementById('title-error').style.display = 'none';
+            }
+
+            const payload = {
+                title: title,
+                date: date, // Will be YYYY-MM-DD or empty string
+                time: time,
+                people: seats
+            };
+
+            // Send data back to telegram bot and close webapp
+            tg.sendData(JSON.stringify(payload));
+            tg.close();
+        }
+    </script>
+</body>
+</html>
