@@ -61,8 +61,7 @@
 
         /* Aligned Heights and Box Sizing */
         input[type="text"],
-        #date-input,
-        select {
+        #date-input {
             width: 100%;
             height: 50px;
             box-sizing: border-box;
@@ -74,6 +73,24 @@
             font-size: 16px;
             outline: none;
             transition: border-color 0.2s;
+        }
+
+        select {
+            width: 100%;
+            height: 50px;
+            box-sizing: border-box;
+            background-color: var(--tg-theme-secondary-bg-color, var(--input-bg));
+            border: 1px solid var(--tg-theme-hint-color, var(--input-border));
+            color: var(--tg-theme-text-color, var(--text-color));
+            border-radius: 10px;
+            padding: 12px;
+            padding-right: 40px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
         }
 
         input[type="text"]:focus,
@@ -112,8 +129,13 @@
             user-select: none;
         }
 
-        .stepper-btn:active {
+        .stepper-btn:active:not(:disabled) {
             opacity: 0.6;
+        }
+
+        .stepper-btn:disabled {
+            color: var(--tg-theme-hint-color, var(--hint-color));
+            cursor: not-allowed;
         }
 
         .stepper-value {
@@ -205,18 +227,25 @@
     <!-- Time Selector -->
     <div class="form-group">
         <label for="time">Time (Hour)</label>
-        <select id="time">
-            <!-- Hours 0 to 23 -->
-        </select>
+        <div style="position: relative; display: flex; align-items: center; width: 100%;">
+            <select id="time">
+                <!-- Hours 0 to 23 -->
+            </select>
+            <div style="position: absolute; right: 14px; pointer-events: none; display: flex; align-items: center; justify-content: center; height: 100%;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--tg-theme-hint-color, var(--hint-color));">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </div>
+        </div>
     </div>
 
     <!-- Seats Stepper -->
     <div class="form-group">
         <label>Seats (People)</label>
         <div class="stepper">
-            <button type="button" class="stepper-btn" onclick="adjustSeats(-1)">−</button>
+            <button type="button" id="stepper-minus" class="stepper-btn" onclick="adjustSeats(-1)">−</button>
             <span class="stepper-value" id="seats-value">1</span>
-            <button type="button" class="stepper-btn" onclick="adjustSeats(1)">+</button>
+            <button type="button" id="stepper-plus" class="stepper-btn" onclick="adjustSeats(1)">+</button>
         </div>
     </div>
 
@@ -266,11 +295,20 @@
         // 3. Seats Stepper logic (Default set to 1)
         let seats = 1;
         const seatsValEl = document.getElementById('seats-value');
+        const minusBtn = document.getElementById('stepper-minus');
+        const plusBtn = document.getElementById('stepper-plus');
         
+        function updateStepperButtons() {
+            minusBtn.disabled = (seats === 1);
+            plusBtn.disabled = (seats === 8);
+        }
+
         function adjustSeats(amount) {
             seats = Math.max(1, Math.min(8, seats + amount)); // Limit seats between 1 and 8
             seatsValEl.textContent = seats;
+            updateStepperButtons();
         }
+        updateStepperButtons(); // Initial call
 
         // 4. Custom Calendar Logic
         let currentDate = new Date();
@@ -284,6 +322,15 @@
 
         const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         const dayNames = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+
+        function updateDateInputColor() {
+            if (dateInput.value === "ANY DATE") {
+                dateInput.style.color = "var(--tg-theme-hint-color, var(--hint-color))";
+            } else {
+                dateInput.style.color = "";
+            }
+        }
+        updateDateInputColor();
 
         function renderCalendar() {
             calendarGrid.innerHTML = '';
@@ -357,6 +404,7 @@
             dateInput.value = formatShowDate(date);
             resetDateBtn.style.display = 'block';
             calendarPopup.style.display = 'none';
+            updateDateInputColor();
         }
 
         function resetDate() {
@@ -364,6 +412,7 @@
             dateInput.value = "ANY DATE";
             resetDateBtn.style.display = 'none';
             calendarPopup.style.display = 'none';
+            updateDateInputColor();
         }
 
         function formatShowDate(d) {
