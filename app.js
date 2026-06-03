@@ -114,6 +114,7 @@ function renderState() {
                 const row = document.createElement('div');
                 row.className = 'schedule-row';
                 row.dataset.scheduleIdx = scheduleIdx;
+                row.style.order = scheduleIdx;
 
                 // --- Date Box ---
                 const dateBox = document.createElement('div');
@@ -224,49 +225,80 @@ function renderState() {
                     if (e.button !== 0 && e.pointerType === 'mouse') return;
                     
                     row.classList.add('dragging');
-                    row.style.opacity = '0.5';
                     btnDrag.setPointerCapture(e.pointerId);
                     
-                    const activeDragMovieIdx = movieIdx;
+                    const startY = e.clientY;
+                    const parent = row.parentNode;
+                    const siblings = Array.from(parent.querySelectorAll('.schedule-row'));
+                    const initialIdx = siblings.indexOf(row);
+                    
+                    // Measure distance between rows
+                    let rowDistance = row.offsetHeight + 12; // fallback (height + gap)
+                    if (siblings.length > 1) {
+                        const rect0 = siblings[0].getBoundingClientRect();
+                        const rect1 = siblings[1].getBoundingClientRect();
+                        rowDistance = Math.abs(rect1.top - rect0.top);
+                    }
+                    
+                    // Set styles for siblings to transition smoothly
+                    siblings.forEach((sib, idx) => {
+                        if (idx !== initialIdx) {
+                            sib.style.transition = 'transform 0.2s cubic-bezier(0.2, 0, 0, 1)';
+                        }
+                    });
+                    
+                    let currentVisualIdx = initialIdx;
                     
                     const onPointerMove = (moveEv) => {
-                        const y = moveEv.clientY;
-                        const parent = row.parentNode;
+                        const deltaY = moveEv.clientY - startY;
+                        row.style.transform = `translateY(${deltaY}px)`;
                         
-                        // Get all sibling rows in the same movie group (excluding the one being dragged)
-                        const siblings = Array.from(parent.querySelectorAll('.schedule-row:not(.dragging)'));
+                        // Calculate target index
+                        const rawTargetIdx = initialIdx + deltaY / rowDistance;
+                        const targetIdx = Math.max(0, Math.min(siblings.length - 1, Math.round(rawTargetIdx)));
                         
-                        // Find the sibling whose midpoint is below the pointer Y coordinate
-                        const nextSibling = siblings.find(sibling => {
-                            const rect = sibling.getBoundingClientRect();
-                            return y < rect.top + rect.height / 2;
+                        currentVisualIdx = targetIdx;
+                        
+                        siblings.forEach((sib, idx) => {
+                            if (idx === initialIdx) return;
+                            
+                            // If index is between initial and target index, shift it
+                            if (initialIdx < targetIdx && idx > initialIdx && idx <= targetIdx) {
+                                // Dragged down, shift siblings up
+                                sib.style.transform = `translateY(${-rowDistance}px)`;
+                            } else if (initialIdx > targetIdx && idx < initialIdx && idx >= targetIdx) {
+                                // Dragged up, shift siblings down
+                                sib.style.transform = `translateY(${rowDistance}px)`;
+                            } else {
+                                // Reset transform
+                                sib.style.transform = '';
+                            }
                         });
-                        
-                        // Reorder in DOM
-                        if (nextSibling) {
-                            parent.insertBefore(row, nextSibling);
-                        } else {
-                            parent.appendChild(row);
-                        }
                     };
                     
                     const onPointerUp = (upEv) => {
-                        btnDrag.releasePointerCapture(upEv.pointerId);
                         btnDrag.removeEventListener('pointermove', onPointerMove);
                         btnDrag.removeEventListener('pointerup', onPointerUp);
                         btnDrag.removeEventListener('pointercancel', onPointerUp);
+                        btnDrag.removeEventListener('lostpointercapture', onPointerUp);
+                        
+                        if (btnDrag.hasPointerCapture(upEv.pointerId)) {
+                            btnDrag.releasePointerCapture(upEv.pointerId);
+                        }
                         
                         row.classList.remove('dragging');
-                        row.style.opacity = '';
                         
-                        // Update moviesState with the new DOM child order
-                        const parent = row.parentNode;
-                        const rows = Array.from(parent.querySelectorAll('.schedule-row'));
-                        const newSchedules = rows.map(r => {
-                            const idx = parseInt(r.dataset.scheduleIdx);
-                            return moviesState[activeDragMovieIdx].date_time[idx];
+                        // Reset all temporary transforms and transitions
+                        siblings.forEach(sib => {
+                            sib.style.transform = '';
+                            sib.style.transition = '';
                         });
-                        moviesState[activeDragMovieIdx].date_time = newSchedules;
+                        
+                        // Update moviesState with the new visual order
+                        const activeDragMovieIdx = movieIdx;
+                        const schedules = moviesState[activeDragMovieIdx].date_time;
+                        const [draggedItem] = schedules.splice(initialIdx, 1);
+                        schedules.splice(currentVisualIdx, 0, draggedItem);
                         
                         renderState();
                     };
@@ -274,6 +306,7 @@ function renderState() {
                     btnDrag.addEventListener('pointermove', onPointerMove);
                     btnDrag.addEventListener('pointerup', onPointerUp);
                     btnDrag.addEventListener('pointercancel', onPointerUp);
+                    btnDrag.addEventListener('lostpointercapture', onPointerUp);
                 });
                 row.appendChild(btnDrag);
 

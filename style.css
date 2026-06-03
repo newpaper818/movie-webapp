@@ -169,6 +169,23 @@ body {
 .action-icon.btn-drag {
     margin-left: 8px;
     touch-action: none;
+    cursor: grab;
+}
+
+.action-icon.btn-drag:active {
+    cursor: grabbing;
+}
+
+.schedule-row.dragging {
+    opacity: 0.95;
+    background-color: var(--box-bg);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    border-radius: 12px;
+    position: relative;
+    z-index: 100;
+    cursor: grabbing;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 /* Add Schedule Button */
