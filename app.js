@@ -116,6 +116,13 @@ function renderState() {
                 row.dataset.scheduleIdx = scheduleIdx;
                 row.style.order = scheduleIdx;
 
+                // --- Calendar Clock Icon ---
+                const calendarClockIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                calendarClockIcon.setAttribute('class', 'icon schedule-icon');
+                calendarClockIcon.setAttribute('viewBox', '0 -960 960 960');
+                calendarClockIcon.innerHTML = `<path d="M200-640h560v-80H200v80Zm0 0v-80 80Zm0 560q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-40q0-17 11.5-28.5T280-880q17 0 28.5 11.5T320-840v40h320v-40q0-17 11.5-28.5T680-880q17 0 28.5 11.5T720-840v40h40q33 0 56.5 23.5T840-720v187q0 17-11.5 28.5T800-493q-17 0-28.5-11.5T760-533v-27H200v400h232q17 0 28.5 11.5T472-120q0 17-11.5 28.5T432-80H200Zm378.5-18.5Q520-157 520-240t58.5-141.5Q637-440 720-440t141.5 58.5Q920-323 920-240T861.5-98.5Q803-40 720-40T578.5-98.5ZM740-248v-92q0-8-6-14t-14-6q-8 0-14 6t-6 14v91q0 8 3 15.5t9 13.5l61 61q6 6 14 6t14-6q6-6 6-14t-6-14l-61-61Z"/>`;
+                row.appendChild(calendarClockIcon);
+
                 // --- Date Box ---
                 const dateBox = document.createElement('div');
                 dateBox.className = 'select-box date-box';
@@ -123,11 +130,7 @@ function renderState() {
                 const dateDisplay = schedule.date ? schedule.date : 'Anydate';
                 const dateClass = schedule.date ? '' : 'class="placeholder"';
                 
-                // Calendar Icon SVG (calendar_month_24dp)
                 dateBox.innerHTML = `
-                    <svg class="icon" viewBox="0 -960 960 960">
-                        <path d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-40q0-17 11.5-28.5T280-880q17 0 28.5 11.5T320-840v40h320v-40q0-17 11.5-28.5T680-880q17 0 28.5 11.5T720-840v40h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm0 0v-80 80Zm280 240q-17 0-28.5-11.5T440-440q0-17 11.5-28.5T480-480q17 0 28.5 11.5T520-440q0 17-11.5 28.5T480-400Zm-188.5-11.5Q280-423 280-440t11.5-28.5Q303-480 320-480t28.5 11.5Q360-457 360-440t-11.5 28.5Q337-400 320-400t-28.5-11.5ZM640-400q-17 0-28.5-11.5T600-440q0-17 11.5-28.5T640-480q17 0 28.5 11.5T680-440q0 17-11.5 28.5T640-400ZM480-240q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Zm-188.5-11.5Q280-263 280-280t11.5-28.5Q303-320 320-320t28.5 11.5Q360-297 360-280t-11.5 28.5Q337-240 320-240t-28.5-11.5ZM640-240q-17 0-28.5-11.5T600-280q0-17 11.5-28.5T640-320q17 0 28.5 11.5T680-280q0 17-11.5 28.5T640-240Z"/>
-                    </svg>
                     <span ${dateClass}>${dateDisplay}</span>
                 `;
                 dateBox.addEventListener('click', (e) => {
@@ -143,11 +146,7 @@ function renderState() {
                 const formatTime = (h) => `${h.toString().padStart(2, '0')}:00`;
                 const currentTimeVal = schedule.time !== undefined ? parseInt(schedule.time) : 12;
                 
-                // Clock Icon SVG (schedule_24dp)
                 timeBox.innerHTML = `
-                    <svg class="icon" viewBox="0 -960 960 960">
-                        <path d="M520-496v-144q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640v159q0 8 3 15.5t9 13.5l132 132q11 11 28 11t28-11q11-11 11-28t-11-28L520-496ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-400Zm0 320q133 0 226.5-93.5T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 133 93.5 226.5T480-160Z"/>
-                    </svg>
                     <span>${formatTime(currentTimeVal)}</span>
                 `;
                 

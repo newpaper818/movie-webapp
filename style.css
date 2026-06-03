@@ -106,7 +106,7 @@ body {
 }
 
 .date-box {
-    width: 152px;
+    width: 120px;
     margin-left: 12px;
     flex-grow: 1.52;
     flex-shrink: 1;
@@ -115,7 +115,6 @@ body {
 
 .time-box {
     width: 104px;
-    /* margin-left: 12px; */
     flex-grow: 1.04;
     flex-shrink: 1;
     min-width: 0;
@@ -123,7 +122,6 @@ body {
 
 .people-box {
     width: 70px;
-    /* margin-left: 12px; */
     flex-grow: 0.70;
     flex-shrink: 1;
     min-width: 0;
@@ -149,6 +147,10 @@ body {
     height: 24px;
     fill: var(--icon-color);
     flex-shrink: 0;
+}
+
+.schedule-icon {
+    margin-left: 12px;
 }
 
 .action-icon {
