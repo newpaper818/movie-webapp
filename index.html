@@ -43,9 +43,9 @@
         }
 
         .container {
-            width: 422px;
+            width: 454px;
             margin: 0 auto;
-            padding: 24px 16px 12px 16px;
+            padding: 24px 16px 80px 16px;
             display: flex;
             flex-direction: column;
             position: relative;
@@ -193,11 +193,18 @@
 
         /* Bottom Bar / Buttons */
         .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 454px;
+            max-width: 100%;
+            background-color: var(--bg-color);
             display: flex;
             justify-content: flex-start;
-            margin-top: auto;
-            padding-top: 24px;
-            padding-bottom: 12px;
+            padding: 12px 16px;
+            box-sizing: border-box;
+            z-index: 2000;
         }
 
         .btn-bottom {
