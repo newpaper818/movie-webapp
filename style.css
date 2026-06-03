@@ -1,0 +1,316 @@
+:root {
+    /* Default Light Theme colors requested by the user */
+    --bg-color: #FFFFFF;
+    --box-bg: #F6F6F6;
+    --icon-color: #9F9F9F;
+    --text-color: #000000;
+    --gray-text: #9F9F9F;
+    --button-save-bg: #2481cc;
+    --button-save-text: #FFFFFF;
+}
+
+body.dark {
+    /* Dark theme mapping using Telegram client variables */
+    --bg-color: var(--tg-theme-bg-color, #17212b);
+    --box-bg: var(--tg-theme-secondary-bg-color, #202b36);
+    --text-color: var(--tg-theme-text-color, #f5f6f7);
+    --gray-text: var(--tg-theme-hint-color, #7f91a4);
+    --button-save-bg: var(--tg-theme-button-color, #2481cc);
+    --button-save-text: var(--tg-theme-button-text-color, #ffffff);
+}
+
+* {
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    font-size: 16px;
+}
+
+.container {
+    width: 100%;
+    max-width: 454px;
+    margin: 0 auto;
+    padding: 24px 16px 80px 16px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+/* Movie Group */
+.movie-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 24px;
+}
+
+.movie-header-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.movie-header {
+    flex: 1;
+    max-width: 358px;
+    height: 48px;
+    background-color: var(--box-bg);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+}
+
+.movie-title-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--text-color);
+    width: 100%;
+    margin-left: 8px;
+}
+
+.movie-title-input::placeholder {
+    color: var(--gray-text);
+}
+
+/* Schedule Row */
+.schedule-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.schedule-row {
+    display: flex;
+    align-items: center;
+}
+
+.select-box {
+    height: 48px;
+    /* background-color: var(--box-bg); */
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    padding: 0 0px;
+    position: relative;
+    cursor: pointer;
+}
+
+.date-box {
+    width: 152px;
+    margin-left: 12px;
+    flex-grow: 1.52;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.time-box {
+    width: 104px;
+    /* margin-left: 12px; */
+    flex-grow: 1.04;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.people-box {
+    width: 70px;
+    /* margin-left: 12px; */
+    flex-grow: 0.70;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.select-box span {
+    font-size: 13px;
+    color: var(--text-color);
+    margin-left: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* For date input to show placeholder */
+.select-box span.placeholder {
+    color: var(--gray-text);
+}
+
+/* Icons styling */
+.icon {
+    width: 24px;
+    height: 24px;
+    fill: var(--icon-color);
+    flex-shrink: 0;
+}
+
+.action-icon {
+    width: 24px;
+    height: 24px;
+    fill: var(--icon-color);
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-icon.btn-delete {
+    margin-left: 8px;
+}
+
+.action-icon.btn-drag {
+    margin-left: 8px;
+    touch-action: none;
+}
+
+/* Add Schedule Button */
+.btn-add-schedule {
+    width: 350px;
+    max-width: 100%;
+    height: 40px;
+    border: none;
+    background-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gray-text);
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 12px;
+    outline: none;
+}
+
+.btn-add-schedule span {
+    margin-left: 8px;
+}
+
+/* Bottom Bar / Buttons */
+.bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 454px;
+    max-width: 100%;
+    background-color: var(--bg-color);
+    display: flex;
+    justify-content: flex-start;
+    padding: 12px 16px;
+    box-sizing: border-box;
+    z-index: 2000;
+}
+
+.btn-bottom {
+    flex: 1;
+    height: 44px;
+    border-radius: 12px;
+    border: none;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    outline: none;
+    transition: opacity 0.2s;
+}
+
+.btn-bottom:active {
+    opacity: 0.8;
+}
+
+.btn-add-movie {
+    background-color: var(--box-bg);
+    color: var(--text-color);
+}
+
+.btn-save {
+    background-color: var(--button-save-bg);
+    color: var(--button-save-text);
+    margin-left: 12px;
+}
+
+/* Custom Calendar Overlay Popup styling */
+#calendar-popup {
+    display: none;
+    position: absolute;
+    width: 280px;
+    background-color: var(--box-bg);
+    border: 1px solid var(--gray-text);
+    border-radius: 12px;
+    z-index: 1000;
+    padding: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.calendar-header button {
+    background: transparent;
+    border: none;
+    color: var(--button-save-bg);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px 8px;
+    outline: none;
+}
+
+.calendar-month-year {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text-color);
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    text-align: center;
+    font-size: 13px;
+}
+
+.calendar-day-header {
+    color: var(--gray-text);
+    font-weight: 500;
+    padding-bottom: 6px;
+}
+
+.calendar-day {
+    cursor: pointer;
+    padding: 6px 0;
+    border-radius: 8px;
+    color: var(--text-color);
+    transition: background 0.15s, color 0.15s;
+}
+
+.calendar-day:hover {
+    background-color: rgba(128, 128, 128, 0.2);
+}
+
+.calendar-day.selected {
+    background-color: var(--button-save-bg) !important;
+    color: var(--button-save-text) !important;
+    font-weight: bold;
+}
+
+.calendar-day.empty {
+    cursor: default;
+}
+
+/* Spacer to allow scrolling past the bottom bar */
+.spacer {
+    height: 300px;
+}
