@@ -3,423 +3,733 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Add Movie Reservation</title>
+    <title>Edit Movie Reservations</title>
     <!-- Include Telegram Web App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg-color: #17212b;
-            --text-color: #f5f6f7;
-            --button-color: #2481cc;
-            --button-text-color: #ffffff;
-            --input-bg: #202b36;
-            --input-border: #2f3e4e;
-            --hint-color: #7f91a4;
+            /* Default Light Theme colors requested by the user */
+            --bg-color: #FFFFFF;
+            --box-bg: #F6F6F6;
+            --icon-color: #9F9F9F;
+            --text-color: #000000;
+            --gray-text: #9F9F9F;
+            --button-save-bg: #2481cc;
+            --button-save-text: #FFFFFF;
         }
 
-        /* Adjust colors based on Telegram Theme if available */
-        body.telegram {
-            background-color: var(--tg-theme-bg-color, #17212b);
-            color: var(--tg-theme-text-color, #f5f6f7);
+        body.dark {
+            /* Dark theme mapping using Telegram client variables */
+            --bg-color: var(--tg-theme-bg-color, #17212b);
+            --box-bg: var(--tg-theme-secondary-bg-color, #202b36);
+            --text-color: var(--tg-theme-text-color, #f5f6f7);
+            --gray-text: var(--tg-theme-hint-color, #7f91a4);
+            --button-save-bg: var(--tg-theme-button-color, #2481cc);
+            --button-save-text: var(--tg-theme-button-text-color, #ffffff);
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 16px;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
+            padding: 0;
             min-height: 100vh;
+            font-size: 16px;
         }
 
-        h2 {
-            font-size: 20px;
-            font-weight: 600;
-            margin-top: 0;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .form-group {
-            margin-bottom: 16px;
+        .container {
+            width: 422px;
+            margin: 0 auto;
+            padding: 24px 16px 12px 16px;
             display: flex;
             flex-direction: column;
             position: relative;
         }
 
-        label {
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--tg-theme-hint-color, var(--hint-color));
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        /* Movie Group */
+        .movie-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 24px;
         }
 
-        /* Aligned Heights and Box Sizing */
-        input[type="text"],
-        #date-input {
-            width: 100%;
-            height: 50px;
-            box-sizing: border-box;
-            background-color: var(--tg-theme-secondary-bg-color, var(--input-bg));
-            border: none;
-            color: var(--tg-theme-text-color, var(--text-color));
-            border-radius: 10px;
-            padding: 12px;
-            font-size: 16px;
-            outline: none;
-            transition: box-shadow 0.2s;
-        }
-
-        select {
-            width: 100%;
-            height: 50px;
-            box-sizing: border-box;
-            background-color: var(--tg-theme-secondary-bg-color, var(--input-bg));
-            border: none;
-            color: var(--tg-theme-text-color, var(--text-color));
-            border-radius: 10px;
-            padding: 12px;
-            padding-right: 40px;
-            font-size: 16px;
-            outline: none;
-            transition: box-shadow 0.2s;
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-        }
-
-        input[type="text"]:focus,
-        #date-input:focus,
-        select:focus {
-            box-shadow: 0 0 0 2px var(--tg-theme-button-color, var(--button-color));
-        }
-
-        /* Stepper Height Alignment */
-        .stepper {
-            width: 100%;
-            height: 50px;
-            box-sizing: border-box;
-            background-color: var(--tg-theme-secondary-bg-color, var(--input-bg));
-            border: none;
-            color: var(--tg-theme-text-color, var(--text-color));
-            border-radius: 10px;
+        .movie-header-row {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 0 4px;
+            margin-bottom: 12px;
         }
 
-        .stepper-btn {
-            background-color: transparent;
+        .movie-header {
+            width: 350px;
+            height: 48px;
+            background-color: var(--box-bg);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+        }
+
+        .movie-title-input {
+            background: transparent;
             border: none;
-            color: var(--tg-theme-button-color, var(--button-color));
-            font-size: 24px;
-            width: 42px;
-            height: 42px;
-            cursor: pointer;
             outline: none;
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--text-color);
+            width: 100%;
+            margin-left: 8px;
+        }
+
+        .movie-title-input::placeholder {
+            color: var(--gray-text);
+        }
+
+        /* Schedule Row */
+        .schedule-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .schedule-row {
+            display: flex;
+            align-items: center;
+        }
+
+        .select-box {
+            height: 48px;
+            background-color: var(--box-bg);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .date-box {
+            width: 152px;
+            flex-shrink: 0;
+        }
+
+        .time-box {
+            width: 104px;
+            margin-left: 12px;
+            flex-shrink: 0;
+        }
+
+        .people-box {
+            width: 70px;
+            margin-left: 12px;
+            flex-shrink: 0;
+        }
+
+        .select-box span {
+            font-size: 16px;
+            color: var(--text-color);
+            margin-left: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* For date input to show placeholder */
+        .select-box span.placeholder {
+            color: var(--gray-text);
+        }
+
+        /* Icons styling */
+        .icon {
+            width: 24px;
+            height: 24px;
+            fill: var(--icon-color);
+            flex-shrink: 0;
+        }
+
+        .action-icon {
+            width: 24px;
+            height: 24px;
+            fill: var(--icon-color);
+            cursor: pointer;
+            flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            user-select: none;
         }
 
-        .stepper-btn:active:not(:disabled) {
-            opacity: 0.6;
+        .action-icon.btn-delete {
+            margin-left: 12px;
         }
 
-        .stepper-btn:disabled {
-            color: var(--tg-theme-hint-color, var(--hint-color));
-            cursor: not-allowed;
+        .action-icon.btn-drag {
+            margin-left: 12px;
+            touch-action: none;
         }
 
-        .stepper-value {
-            font-size: 18px;
-            font-weight: 600;
-            width: 60px;
-            text-align: center;
-        }
-
-        /* Submit Button */
-        .submit-btn {
-            background-color: var(--tg-theme-button-color, var(--button-color));
-            color: var(--tg-theme-button-text-color, var(--button-text-color));
+        /* Add Schedule Button */
+        .btn-add-schedule {
+            width: 350px;
+            height: 40px;
             border: none;
-            border-radius: 10px;
-            padding: 14px;
+            background-color: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray-text);
             font-size: 16px;
-            font-weight: 600;
             cursor: pointer;
-            margin-top: auto;
+            margin-top: 12px;
             outline: none;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-add-schedule span {
+            margin-left: 8px;
+        }
+
+        /* Bottom Bar / Buttons */
+        .bottom-bar {
+            display: flex;
+            justify-content: flex-start;
+            margin-top: auto;
+            padding-top: 24px;
+            padding-bottom: 12px;
+        }
+
+        .btn-bottom {
+            width: 200px;
+            height: 44px;
+            border-radius: 12px;
+            border: none;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            outline: none;
             transition: opacity 0.2s;
         }
 
-        .submit-btn:active {
-            opacity: 0.85;
+        .btn-bottom:active {
+            opacity: 0.8;
         }
 
-        .error-message {
-            color: #ff595a;
-            font-size: 12px;
-            margin-top: 4px;
-            display: none;
+        .btn-add-movie {
+            background-color: var(--box-bg);
+            color: var(--text-color);
         }
 
-        /* Custom Calendar Popup */
+        .btn-save {
+            background-color: var(--button-save-bg);
+            color: var(--button-save-text);
+            margin-left: 12px;
+        }
+
+        /* Custom Calendar Overlay Popup styling */
         #calendar-popup {
             display: none;
             position: absolute;
-            top: 75px;
-            left: 0;
-            right: 0;
-            background-color: var(--tg-theme-secondary-bg-color, var(--input-bg));
-            border: 1px solid var(--tg-theme-hint-color, var(--input-border));
+            width: 280px;
+            background-color: var(--box-bg);
+            border: 1px solid var(--gray-text);
             border-radius: 12px;
             z-index: 1000;
             padding: 12px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-            box-sizing: border-box;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .calendar-header button {
+            background: transparent;
+            border: none;
+            color: var(--button-save-bg);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px 8px;
+            outline: none;
+        }
+
+        .calendar-month-year {
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--text-color);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .calendar-day-header {
+            color: var(--gray-text);
+            font-weight: 500;
+            padding-bottom: 6px;
+        }
+
+        .calendar-day {
+            cursor: pointer;
+            padding: 6px 0;
+            border-radius: 8px;
+            color: var(--text-color);
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .calendar-day:hover {
+            background-color: rgba(128, 128, 128, 0.2);
+        }
+
+        .calendar-day.selected {
+            background-color: var(--button-save-bg) !important;
+            color: var(--button-save-text) !important;
+            font-weight: bold;
+        }
+
+        .calendar-day.empty {
+            cursor: default;
         }
     </style>
 </head>
 <body>
 
-    <h2>Add Movie Reservation</h2>
+    <div class="container">
+        <!-- Dynamic Movies will be rendered here -->
+        <div id="movies-container"></div>
 
-    <!-- Movie Title (with Suggestions Datalist) -->
-    <div class="form-group">
-        <label for="title">Movie Title</label>
-        <input type="text" id="title" placeholder="Enter or select movie title" list="movie-suggestions" required autocomplete="off">
-        <datalist id="movie-suggestions">
-            <!-- Dynamic options populated from query params -->
-        </datalist>
-        <div id="title-error" class="error-message">⚠️ Movie title cannot be empty.</div>
-    </div>
-
-    <!-- Date (Custom Calendar Input with Reset Button) -->
-    <div class="form-group">
-        <label for="date-input">Date (Optional)</label>
-        <div style="position: relative; display: flex; align-items: center; width: 100%;">
-            <input type="text" id="date-input" readonly value="ANY DATE" style="cursor: pointer; padding-right: 40px;">
-            <button type="button" id="reset-date-btn" style="position: absolute; right: 10px; background: transparent; border: none; color: var(--tg-theme-hint-color, var(--hint-color)); font-size: 18px; cursor: pointer; display: none;">✕</button>
+        <!-- Global Bottom Buttons -->
+        <div class="bottom-bar">
+            <button type="button" class="btn-bottom btn-add-movie" id="btn-add-movie-action">Add new movie</button>
+            <button type="button" class="btn-bottom btn-save" id="btn-save-action">Save</button>
         </div>
-        
-        <!-- Custom Calendar Overlay -->
+
+        <!-- Global Custom Calendar Dropdown -->
         <div id="calendar-popup">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <button type="button" id="prev-month-btn" style="background: transparent; border: none; color: var(--tg-theme-button-color, var(--button-color)); font-size: 18px; cursor: pointer; padding: 4px 8px;">◀</button>
-                <span id="calendar-month-year" style="font-weight: 600; font-size: 15px;"></span>
-                <button type="button" id="next-month-btn" style="background: transparent; border: none; color: var(--tg-theme-button-color, var(--button-color)); font-size: 18px; cursor: pointer; padding: 4px 8px;">▶</button>
+            <div class="calendar-header">
+                <button type="button" id="prev-month-btn">◀</button>
+                <span class="calendar-month-year" id="calendar-month-year"></span>
+                <button type="button" id="next-month-btn">▶</button>
             </div>
-            <div id="calendar-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; font-size: 13px;">
-                <!-- Days header (Su, Mo, ...) then dates -->
+            <div class="calendar-header" style="justify-content: center; margin-top: -6px; margin-bottom: 6px;">
+                <button type="button" id="calendar-reset-btn" style="font-size: 14px; color: var(--gray-text);">Anydate (Reset)</button>
             </div>
-        </div>
-    </div>
-
-    <!-- Time Selector -->
-    <div class="form-group">
-        <label for="time">Time (Hour)</label>
-        <div style="position: relative; display: flex; align-items: center; width: 100%;">
-            <select id="time">
-                <!-- Hours 0 to 23 -->
-            </select>
-            <div style="position: absolute; right: 14px; pointer-events: none; display: flex; align-items: center; justify-content: center; height: 100%;">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--tg-theme-hint-color, var(--hint-color));">
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
+            <div class="calendar-grid" id="calendar-grid">
+                <!-- Header days then dates -->
             </div>
         </div>
     </div>
-
-    <!-- Seats Stepper -->
-    <div class="form-group">
-        <label>Seats (People)</label>
-        <div class="stepper">
-            <button type="button" id="stepper-minus" class="stepper-btn" onclick="adjustSeats(-1)">−</button>
-            <span class="stepper-value" id="seats-value">1</span>
-            <button type="button" id="stepper-plus" class="stepper-btn" onclick="adjustSeats(1)">+</button>
-        </div>
-    </div>
-
-    <!-- Submit -->
-    <button type="button" class="submit-btn" onclick="submitForm()">Add to List</button>
 
     <script>
         const tg = window.Telegram.WebApp;
         
-        // Initialize and apply theme
+        // Initialize Telegram Web App
         tg.ready();
-        tg.expand(); // Expand the webapp to full screen height
+        tg.expand();
         
-        if (tg.colorScheme === 'dark' || tg.colorScheme === 'light') {
-            document.body.classList.add('telegram');
+        if (tg.colorScheme === 'dark') {
+            document.body.classList.add('dark');
         }
 
-        // 1. Populate Movie Suggestions from URL Query Param
-        const urlParams = new URLSearchParams(window.location.search);
-        const moviesQuery = urlParams.get('movies');
-        if (moviesQuery) {
-            try {
-                const movies = decodeURIComponent(moviesQuery).split(',');
-                const datalist = document.getElementById('movie-suggestions');
-                movies.forEach(movie => {
-                    if (movie.trim()) {
-                        const option = document.createElement('option');
-                        option.value = movie.trim();
-                        datalist.appendChild(option);
-                    }
-                });
-            } catch (e) {
-                console.error("Failed to parse movie suggestions:", e);
-            }
-        }
-
-        // 2. Populate Time Selector (0 to 23)
-        const timeSelect = document.getElementById('time');
-        for (let h = 0; h <= 23; h++) {
-            const option = document.createElement('option');
-            option.value = h;
-            option.textContent = `${h.toString().padStart(2, '0')}:00`;
-            if (h === 12) option.selected = true; // Default to 12:00
-            timeSelect.appendChild(option);
-        }
-
-        // 3. Seats Stepper logic (Default set to 1)
-        let seats = 1;
-        const seatsValEl = document.getElementById('seats-value');
-        const minusBtn = document.getElementById('stepper-minus');
-        const plusBtn = document.getElementById('stepper-plus');
-        
-        function updateStepperButtons() {
-            minusBtn.disabled = (seats === 1);
-            plusBtn.disabled = (seats === 8);
-        }
-
-        function adjustSeats(amount) {
-            seats = Math.max(1, Math.min(8, seats + amount)); // Limit seats between 1 and 8
-            seatsValEl.textContent = seats;
-            updateStepperButtons();
-        }
-        updateStepperButtons(); // Initial call
-
-        // 4. Custom Calendar Logic
-        let currentDate = new Date();
-        let selectedDate = null; // Store selected Date object, null for ANY DATE
-
-        const dateInput = document.getElementById('date-input');
-        const resetDateBtn = document.getElementById('reset-date-btn');
-        const calendarPopup = document.getElementById('calendar-popup');
-        const calendarMonthYear = document.getElementById('calendar-month-year');
-        const calendarGrid = document.getElementById('calendar-grid');
+        // Global State
+        let moviesState = [];
+        let activeMovieIdx = null;
+        let activeScheduleIdx = null;
+        let currentCalendarDate = new Date();
 
         const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         const dayNames = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
-        function updateDateInputColor() {
-            if (dateInput.value === "ANY DATE") {
-                dateInput.style.color = "var(--tg-theme-hint-color, var(--hint-color))";
-            } else {
-                dateInput.style.color = "";
+        // 1. Initial State Loading from Query Params
+        const urlParams = new URLSearchParams(window.location.search);
+        const dataParam = urlParams.get('data');
+        const moviesParam = urlParams.get('movies');
+
+        if (dataParam) {
+            try {
+                // Decode URL-encoded JSON structure
+                const parsed = JSON.parse(decodeURIComponent(dataParam));
+                if (parsed && Array.isArray(parsed.movies)) {
+                    moviesState = parsed.movies;
+                } else if (Array.isArray(parsed)) {
+                    moviesState = parsed;
+                }
+            } catch (e) {
+                console.error("Failed to parse data parameter:", e);
             }
         }
-        updateDateInputColor();
+
+        // Fallback to old movies param if data is not present/valid
+        if (moviesState.length === 0 && moviesParam) {
+            try {
+                const titles = decodeURIComponent(moviesParam).split(',');
+                titles.forEach(title => {
+                    if (title.trim()) {
+                        moviesState.push({
+                            title: title.trim(),
+                            date_time: []
+                        });
+                    }
+                });
+            } catch (e) {
+                console.error("Failed to parse movies parameter:", e);
+            }
+        }
+
+        // 2. Render State Loop
+        const moviesContainer = document.getElementById('movies-container');
+
+        function renderState() {
+            moviesContainer.innerHTML = '';
+
+            moviesState.forEach((movie, movieIdx) => {
+                const movieGroup = document.createElement('div');
+                movieGroup.className = 'movie-group';
+                movieGroup.dataset.idx = movieIdx;
+
+                // Movie Header Row
+                const movieHeaderRow = document.createElement('div');
+                movieHeaderRow.className = 'movie-header-row';
+
+                // Movie Header Box
+                const movieHeader = document.createElement('div');
+                movieHeader.className = 'movie-header';
+
+                // Film Icon SVG (movie_24dp)
+                movieHeader.innerHTML = `
+                    <svg class="icon" viewBox="0 -960 960 960">
+                        <path d="m160-800 65 130q7 14 20 22t28 8q30 0 46-25.5t2-52.5l-41-82h80l65 130q7 14 20 22t28 8q30 0 46-25.5t2-52.5l-41-82h80l65 130q7 14 20 22t28 8q30 0 46-25.5t2-52.5l-41-82h120q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800Zm0 240v320h640v-320H160Zm0 0v320-320Z"/>
+                    </svg>
+                `;
+
+                const titleInput = document.createElement('input');
+                titleInput.type = 'text';
+                titleInput.className = 'movie-title-input';
+                titleInput.value = movie.title || '';
+                titleInput.placeholder = 'Enter movie title';
+                titleInput.addEventListener('input', (e) => {
+                    movie.title = e.target.value;
+                });
+                movieHeader.appendChild(titleInput);
+                movieHeaderRow.appendChild(movieHeader);
+
+                // Movie Delete Button (X) SVG (close_24dp)
+                const btnDeleteMovie = document.createElement('div');
+                btnDeleteMovie.className = 'action-icon btn-delete';
+                btnDeleteMovie.innerHTML = `
+                    <svg viewBox="0 -960 960 960" style="width:24px; height:24px;">
+                        <path d="M480-424 284-228q-11 11-28 11t-28-11q-11-11-11-28t11-28l196-196-196-196q-11-11-11-28t11-28q11-11 28-11t28 11l196 196 196-196q11-11 28-11t28 11q11 11 11 28t-11 28L536-480l196 196q11 11 11 28t-11 28q-11 11-28 11t-28-11L480-424Z"/>
+                    </svg>
+                `;
+                btnDeleteMovie.addEventListener('click', () => {
+                    moviesState.splice(movieIdx, 1);
+                    renderState();
+                });
+                movieHeaderRow.appendChild(btnDeleteMovie);
+                movieGroup.appendChild(movieHeaderRow);
+
+                // Schedule List Container
+                const scheduleList = document.createElement('div');
+                scheduleList.className = 'schedule-list';
+
+                if (movie.date_time && movie.date_time.length > 0) {
+                    movie.date_time.forEach((schedule, scheduleIdx) => {
+                        const row = document.createElement('div');
+                        row.className = 'schedule-row';
+                        row.dataset.scheduleIdx = scheduleIdx;
+
+                        // --- Date Box ---
+                        const dateBox = document.createElement('div');
+                        dateBox.className = 'select-box date-box';
+                        
+                        const dateDisplay = schedule.date ? schedule.date : 'Anydate';
+                        const dateClass = schedule.date ? '' : 'class="placeholder"';
+                        
+                        // Calendar Icon SVG (calendar_month_24dp)
+                        dateBox.innerHTML = `
+                            <svg class="icon" viewBox="0 -960 960 960">
+                                <path d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-40q0-17 11.5-28.5T280-880q17 0 28.5 11.5T320-840v40h320v-40q0-17 11.5-28.5T680-880q17 0 28.5 11.5T720-840v40h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm0 0v-80 80Zm280 240q-17 0-28.5-11.5T440-440q0-17 11.5-28.5T480-480q17 0 28.5 11.5T520-440q0 17-11.5 28.5T480-400Zm-188.5-11.5Q280-423 280-440t11.5-28.5Q303-480 320-480t28.5 11.5Q360-457 360-440t-11.5 28.5Q337-400 320-400t-28.5-11.5ZM640-400q-17 0-28.5-11.5T600-440q0-17 11.5-28.5T640-480q17 0 28.5 11.5T680-440q0 17-11.5 28.5T640-400ZM480-240q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Zm-188.5-11.5Q280-263 280-280t11.5-28.5Q303-320 320-320t28.5 11.5Q360-297 360-280t-11.5 28.5Q337-240 320-240t-28.5-11.5ZM640-240q-17 0-28.5-11.5T600-280q0-17 11.5-28.5T640-320q17 0 28.5 11.5T680-280q0 17-11.5 28.5T640-240Z"/>
+                            </svg>
+                            <span ${dateClass}>${dateDisplay}</span>
+                        `;
+                        dateBox.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            openCalendar(movieIdx, scheduleIdx, dateBox);
+                        });
+                        row.appendChild(dateBox);
+
+                        // --- Time Box (with native hidden select) ---
+                        const timeBox = document.createElement('div');
+                        timeBox.className = 'select-box time-box';
+                        
+                        const formatTime = (h) => `${h.toString().padStart(2, '0')}:00`;
+                        const currentTimeVal = schedule.time !== undefined ? parseInt(schedule.time) : 12;
+                        
+                        // Clock Icon SVG (schedule_24dp)
+                        timeBox.innerHTML = `
+                            <svg class="icon" viewBox="0 -960 960 960">
+                                <path d="M520-496v-144q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640v159q0 8 3 15.5t9 13.5l132 132q11 11 28 11t28-11q11-11 11-28t-11-28L520-496ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-400Zm0 320q133 0 226.5-93.5T800-480q0-133-93.5-226.5T480-800q-133 0-226.5 93.5T160-480q0 133 93.5 226.5T480-160Z"/>
+                            </svg>
+                            <span>${formatTime(currentTimeVal)}</span>
+                        `;
+                        
+                        const timeSelect = document.createElement('select');
+                        timeSelect.style.cssText = 'opacity: 0; position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer;';
+                        for (let h = 0; h <= 23; h++) {
+                            const opt = document.createElement('option');
+                            opt.value = h;
+                            opt.textContent = formatTime(h);
+                            if (h === currentTimeVal) opt.selected = true;
+                            timeSelect.appendChild(opt);
+                        }
+                        timeSelect.addEventListener('change', (e) => {
+                            schedule.time = parseInt(e.target.value);
+                            renderState();
+                        });
+                        timeBox.appendChild(timeSelect);
+                        row.appendChild(timeBox);
+
+                        // --- People Box (with native hidden select) ---
+                        const peopleBox = document.createElement('div');
+                        peopleBox.className = 'select-box people-box';
+                        
+                        const currentPeopleVal = schedule.people !== undefined ? parseInt(schedule.people) : 1;
+                        
+                        // Group/People Icon SVG (group_24dp)
+                        peopleBox.innerHTML = `
+                            <svg class="icon" viewBox="0 -960 960 960">
+                                <path d="M40-272q0-34 17.5-62.5T104-378q62-31 126-46.5T360-440q66 0 130 15.5T616-378q29 15 46.5 43.5T680-272v32q0 33-23.5 56.5T600-160H120q-33 0-56.5-23.5T40-240v-32Zm800 112H738q11-18 16.5-38.5T760-240v-40q0-44-24.5-84.5T666-434q51 6 96 20.5t84 35.5q36 20 55 44.5t19 53.5v40q0 33-23.5 56.5T840-160ZM247-527q-47-47-47-113t47-113q47-47 113-47t113 47q47 47 47 113t-47 113q-47 47-113 47t-113-47Zm466 0q-47 47-113 47-11 0-28-2.5t-28-5.5q27-32 41.5-71t14.5-81q0-42-14.5-81T544-792q14-5 28-6.5t28-1.5q66 0 113 47t47 113q0 66-47 113ZM120-240h480v-32q0-11-5.5-20T580-306q-54-27-109-40.5T360-360q-56 0-111 13.5T140-306q-9 5-14.5 14t-5.5 20v32Zm296.5-343.5Q440-607 440-640t-23.5-56.5Q393-720 360-720t-56.5 23.5Q280-673 280-640t23.5 56.5Q327-560 360-560t56.5-23.5ZM360-240Zm0-400Z"/>
+                            </svg>
+                            <span>${currentPeopleVal}</span>
+                        `;
+                        
+                        const peopleSelect = document.createElement('select');
+                        peopleSelect.style.cssText = 'opacity: 0; position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer;';
+                        for (let p = 1; p <= 8; p++) {
+                            const opt = document.createElement('option');
+                            opt.value = p;
+                            opt.textContent = p;
+                            if (p === currentPeopleVal) opt.selected = true;
+                            peopleSelect.appendChild(opt);
+                        }
+                        peopleSelect.addEventListener('change', (e) => {
+                            schedule.people = parseInt(e.target.value);
+                            renderState();
+                        });
+                        peopleBox.appendChild(peopleSelect);
+                        row.appendChild(peopleBox);
+
+                        // --- Delete Button (X) SVG (close_24dp) ---
+                        const btnDelete = document.createElement('div');
+                        btnDelete.className = 'action-icon btn-delete';
+                        btnDelete.innerHTML = `
+                            <svg viewBox="0 -960 960 960" style="width:24px; height:24px;">
+                                <path d="M480-424 284-228q-11 11-28 11t-28-11q-11-11-11-28t11-28l196-196-196-196q-11-11-11-28t11-28q11-11 28-11t28 11l196 196 196-196q11-11 28-11t28 11q11 11 11 28t-11 28L536-480l196 196q11 11 11 28t-11 28q-11 11-28 11t-28-11L480-424Z"/>
+                            </svg>
+                        `;
+                        btnDelete.addEventListener('click', () => {
+                            movie.date_time.splice(scheduleIdx, 1);
+                            renderState();
+                        });
+                        row.appendChild(btnDelete);
+
+                        // --- Drag Handle (=) SVG (drag_handle_24dp) ---
+                        const btnDrag = document.createElement('div');
+                        btnDrag.className = 'action-icon btn-drag';
+                        btnDrag.innerHTML = `
+                            <svg viewBox="0 -960 960 960" style="width:24px; height:24px;">
+                                <path d="M200-360q-17 0-28.5-11.5T160-400q0-17 11.5-28.5T200-440h560q17 0 28.5 11.5T800-400q0 17-11.5 28.5T760-360H200Zm0-160q-17 0-28.5-11.5T160-560q0-17 11.5-28.5T200-600h560q17 0 28.5 11.5T800-560q0 17-11.5 28.5T760-520H200Z"/>
+                            </svg>
+                        `;
+
+                        // Drag & Drop Pointer Event Handlers (Works on mobile touch and desktop mouse)
+                        btnDrag.addEventListener('pointerdown', (e) => {
+                            if (e.button !== 0 && e.pointerType === 'mouse') return;
+                            
+                            row.classList.add('dragging');
+                            row.style.opacity = '0.5';
+                            btnDrag.setPointerCapture(e.pointerId);
+                            
+                            const activeDragMovieIdx = movieIdx;
+                            
+                            const onPointerMove = (moveEv) => {
+                                const y = moveEv.clientY;
+                                const parent = row.parentNode;
+                                
+                                // Get all sibling rows in the same movie group (excluding the one being dragged)
+                                const siblings = Array.from(parent.querySelectorAll('.schedule-row:not(.dragging)'));
+                                
+                                // Find the sibling whose midpoint is below the pointer Y coordinate
+                                const nextSibling = siblings.find(sibling => {
+                                    const rect = sibling.getBoundingClientRect();
+                                    return y < rect.top + rect.height / 2;
+                                });
+                                
+                                // Reorder in DOM
+                                if (nextSibling) {
+                                    parent.insertBefore(row, nextSibling);
+                                } else {
+                                    parent.appendChild(row);
+                                }
+                            };
+                            
+                            const onPointerUp = (upEv) => {
+                                btnDrag.releasePointerCapture(upEv.pointerId);
+                                btnDrag.removeEventListener('pointermove', onPointerMove);
+                                btnDrag.removeEventListener('pointerup', onPointerUp);
+                                btnDrag.removeEventListener('pointercancel', onPointerUp);
+                                
+                                row.classList.remove('dragging');
+                                row.style.opacity = '';
+                                
+                                // Update moviesState with the new DOM child order
+                                const parent = row.parentNode;
+                                const rows = Array.from(parent.querySelectorAll('.schedule-row'));
+                                const newSchedules = rows.map(r => {
+                                    const idx = parseInt(r.dataset.scheduleIdx);
+                                    return moviesState[activeDragMovieIdx].date_time[idx];
+                                });
+                                moviesState[activeDragMovieIdx].date_time = newSchedules;
+                                
+                                renderState();
+                            };
+                            
+                            btnDrag.addEventListener('pointermove', onPointerMove);
+                            btnDrag.addEventListener('pointerup', onPointerUp);
+                            btnDrag.addEventListener('pointercancel', onPointerUp);
+                        });
+                        row.appendChild(btnDrag);
+
+                        scheduleList.appendChild(row);
+                    });
+                }
+
+                movieGroup.appendChild(scheduleList);
+
+                // Add Schedule Row button (add_circle_24dp)
+                const addScheduleBtn = document.createElement('button');
+                addScheduleBtn.type = 'button';
+                addScheduleBtn.className = 'btn-add-schedule';
+                addScheduleBtn.innerHTML = `
+                    <svg viewBox="0 -960 960 960" style="width:24px; height:24px; fill: currentColor;">
+                        <path d="M440-440v120q0 17 11.5 28.5T480-280q17 0 28.5-11.5T520-320v-120h120q17 0 28.5-11.5T680-480q0-17-11.5-28.5T640-520H520v-120q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640v120H320q-17 0-28.5 11.5T280-480q0 17 11.5 28.5T320-440h120Zm40 360q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/>
+                    </svg>
+                    <span>Add schedule</span>
+                `;
+                addScheduleBtn.addEventListener('click', () => {
+                    if (!movie.date_time) {
+                        movie.date_time = [];
+                    }
+                    movie.date_time.push({
+                        start: false,
+                        date: "",
+                        time: 12,
+                        people: 1,
+                        link: ""
+                    });
+                    renderState();
+                });
+                movieGroup.appendChild(addScheduleBtn);
+
+                moviesContainer.appendChild(movieGroup);
+            });
+        }
+
+        // 3. Calendar rendering & handling logic
+        const calendarPopup = document.getElementById('calendar-popup');
+        const calendarMonthYear = document.getElementById('calendar-month-year');
+        const calendarGrid = document.getElementById('calendar-grid');
+
+        function openCalendar(movieIdx, scheduleIdx, targetElement) {
+            activeMovieIdx = movieIdx;
+            activeScheduleIdx = scheduleIdx;
+            
+            const schedule = moviesState[movieIdx].date_time[scheduleIdx];
+            if (schedule.date) {
+                currentCalendarDate = new Date(schedule.date);
+            } else {
+                currentCalendarDate = new Date();
+            }
+
+            // Position relative to targetElement inside container
+            const container = document.querySelector('.container');
+            const containerRect = container.getBoundingClientRect();
+            const triggerRect = targetElement.getBoundingClientRect();
+
+            calendarPopup.style.left = `${triggerRect.left - containerRect.left}px`;
+            calendarPopup.style.top = `${triggerRect.top - containerRect.top + triggerRect.height + 4}px`;
+            calendarPopup.style.display = 'block';
+
+            renderCalendar();
+        }
 
         function renderCalendar() {
             calendarGrid.innerHTML = '';
             
-            // Render Day Headers (Su, Mo, Tu...)
+            // Render Headers (Su, Mo, Tu...)
             dayNames.forEach(day => {
                 const header = document.createElement('div');
+                header.className = 'calendar-day-header';
                 header.textContent = day;
-                header.style.color = 'var(--tg-theme-hint-color, var(--hint-color))';
-                header.style.fontWeight = '500';
-                header.style.paddingBottom = '6px';
                 calendarGrid.appendChild(header);
             });
 
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
-            
+            const year = currentCalendarDate.getFullYear();
+            const month = currentCalendarDate.getMonth();
+
             calendarMonthYear.textContent = `${monthNames[month]} ${year}`;
-            
+
             const firstDay = new Date(year, month, 1).getDay();
             const totalDays = new Date(year, month + 1, 0).getDate();
-            
-            // Render Blank Days for layout spacing
+
+            // Render Empty cells
             for (let i = 0; i < firstDay; i++) {
-                const blank = document.createElement('div');
-                calendarGrid.appendChild(blank);
+                const empty = document.createElement('div');
+                empty.className = 'calendar-day empty';
+                calendarGrid.appendChild(empty);
             }
-            
+
+            const activeSchedule = moviesState[activeMovieIdx].date_time[activeScheduleIdx];
+            let activeDateObj = null;
+            if (activeSchedule.date) {
+                activeDateObj = new Date(activeSchedule.date);
+            }
+
             // Render Days
             for (let day = 1; day <= totalDays; day++) {
                 const dayCell = document.createElement('div');
+                dayCell.className = 'calendar-day';
                 dayCell.textContent = day;
-                dayCell.style.cursor = 'pointer';
-                dayCell.style.padding = '8px 0';
-                dayCell.style.borderRadius = '8px';
-                dayCell.style.transition = 'background 0.15s, color 0.15s';
-                
-                // Hover effect
-                dayCell.addEventListener('mouseenter', () => {
-                    if (!dayCell.classList.contains('selected')) {
-                        dayCell.style.backgroundColor = 'var(--input-border)';
-                    }
-                });
-                dayCell.addEventListener('mouseleave', () => {
-                    if (!dayCell.classList.contains('selected')) {
-                        dayCell.style.backgroundColor = 'transparent';
-                    }
+
+                if (activeDateObj &&
+                    activeDateObj.getFullYear() === year &&
+                    activeDateObj.getMonth() === month &&
+                    activeDateObj.getDate() === day) {
+                    dayCell.classList.add('selected');
+                }
+
+                dayCell.addEventListener('click', () => {
+                    const selected = new Date(year, month, day);
+                    const formatted = formatValueDate(selected);
+                    
+                    moviesState[activeMovieIdx].date_time[activeScheduleIdx].date = formatted;
+                    calendarPopup.style.display = 'none';
+                    renderState();
                 });
 
-                // Check if this cell is currently selected
-                if (selectedDate && 
-                    selectedDate.getFullYear() === year && 
-                    selectedDate.getMonth() === month && 
-                    selectedDate.getDate() === day) {
-                    dayCell.classList.add('selected');
-                    dayCell.style.backgroundColor = 'var(--tg-theme-button-color, var(--button-color))';
-                    dayCell.style.color = 'var(--tg-theme-button-text-color, var(--button-text-color))';
-                    dayCell.style.fontWeight = '600';
-                }
-                
-                dayCell.addEventListener('click', () => {
-                    selectDate(new Date(year, month, day));
-                });
-                
                 calendarGrid.appendChild(dayCell);
             }
-        }
-
-        function selectDate(date) {
-            selectedDate = date;
-            dateInput.value = formatShowDate(date);
-            resetDateBtn.style.display = 'block';
-            calendarPopup.style.display = 'none';
-            updateDateInputColor();
-        }
-
-        function resetDate() {
-            selectedDate = null;
-            dateInput.value = "ANY DATE";
-            resetDateBtn.style.display = 'none';
-            calendarPopup.style.display = 'none';
-            updateDateInputColor();
-        }
-
-        function formatShowDate(d) {
-            const day = d.getDate();
-            const month = monthNames[d.getMonth()];
-            const year = d.getFullYear();
-            return `${month} ${day}, ${year}`;
         }
 
         function formatValueDate(d) {
@@ -429,67 +739,81 @@
             return `${year}-${month}-${day}`;
         }
 
-        // Navigation
+        // Calendar Popup Actions
         document.getElementById('prev-month-btn').addEventListener('click', (e) => {
             e.stopPropagation();
-            currentDate.setMonth(currentDate.getMonth() - 1);
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
             renderCalendar();
         });
 
         document.getElementById('next-month-btn').addEventListener('click', (e) => {
             e.stopPropagation();
-            currentDate.setMonth(currentDate.getMonth() + 1);
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
             renderCalendar();
         });
 
-        // Show/Hide Calendar dropdown
-        dateInput.addEventListener('click', (e) => {
+        document.getElementById('calendar-reset-btn').addEventListener('click', (e) => {
             e.stopPropagation();
-            const isVisible = calendarPopup.style.display === 'block';
-            calendarPopup.style.display = isVisible ? 'none' : 'block';
-            if (!isVisible) {
-                renderCalendar();
+            if (activeMovieIdx !== null && activeScheduleIdx !== null) {
+                moviesState[activeMovieIdx].date_time[activeScheduleIdx].date = "";
             }
+            calendarPopup.style.display = 'none';
+            renderState();
         });
 
-        resetDateBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            resetDate();
-        });
-
-        // Dismiss calendar when clicking outside
-        document.addEventListener('click', (event) => {
-            if (!calendarPopup.contains(event.target) && !dateInput.contains(event.target) && !resetDateBtn.contains(event.target)) {
+        // Hide calendar on outside clicks
+        document.addEventListener('click', (e) => {
+            if (!calendarPopup.contains(e.target)) {
                 calendarPopup.style.display = 'none';
             }
         });
 
-        // 5. Form Submission
-        function submitForm() {
-            const titleInput = document.getElementById('title');
-            const title = titleInput.value.trim();
-            const date = selectedDate ? formatValueDate(selectedDate) : "";
-            const time = parseInt(document.getElementById('time').value);
+        // 4. Global Action Handlers
+        document.getElementById('btn-add-movie-action').addEventListener('click', () => {
+            moviesState.push({
+                title: '',
+                date_time: []
+            });
+            renderState();
+            
+            // Focus on the newly added movie title input
+            setTimeout(() => {
+                const inputs = document.querySelectorAll('.movie-title-input');
+                if (inputs.length > 0) {
+                    inputs[inputs.length - 1].focus();
+                }
+            }, 50);
+        });
 
-            if (!title) {
-                document.getElementById('title-error').style.display = 'block';
-                titleInput.focus();
-                return;
-            } else {
-                document.getElementById('title-error').style.display = 'none';
-            }
+        document.getElementById('btn-save-action').addEventListener('click', () => {
+            // Remove movies that have no title and no schedules to clean up
+            const cleanedMovies = moviesState.filter(movie => {
+                return movie.title.trim() !== '' || (movie.date_time && movie.date_time.length > 0);
+            });
+
+            // Ensure titles are trimmed
+            cleanedMovies.forEach(movie => {
+                movie.title = movie.title.trim();
+            });
 
             const payload = {
-                title: title,
-                date: date, // YYYY-MM-DD or empty string
-                time: time,
-                people: seats
+                movies: cleanedMovies
             };
 
-            // Send data back to telegram bot and close webapp
+            // Send back to Telegram bot and close Web App
             tg.sendData(JSON.stringify(payload));
             tg.close();
+        });
+
+        // Initial rendering
+        if (moviesState.length === 0) {
+            // Start with at least one empty movie group if no data is passed
+            moviesState.push({
+                title: '',
+                date_time: []
+            });
         }
+        renderState();
     </script>
 </body>
 </html>
