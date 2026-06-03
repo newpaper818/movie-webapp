@@ -43,7 +43,8 @@
         }
 
         .container {
-            width: 454px;
+            width: 100%;
+            max-width: 454px;
             margin: 0 auto;
             padding: 24px 16px 80px 16px;
             display: flex;
@@ -65,7 +66,8 @@
         }
 
         .movie-header {
-            width: 350px;
+            flex: 1;
+            max-width: 350px;
             height: 48px;
             background-color: var(--box-bg);
             border-radius: 12px;
@@ -180,6 +182,7 @@
         /* Add Schedule Button */
         .btn-add-schedule {
             width: 350px;
+            max-width: 100%;
             height: 40px;
             border: none;
             background-color: transparent;
