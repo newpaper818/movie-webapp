@@ -53,12 +53,13 @@ body {
 .movie-header-row {
     display: flex;
     align-items: center;
+    justify-content: center;
     margin-bottom: 12px;
 }
 
 .movie-header {
-    flex: 1;
-    max-width: 358px;
+    width: 336px;
+    flex-shrink: 0;
     height: 48px;
     background-color: var(--box-bg);
     border-radius: 12px;
@@ -92,6 +93,7 @@ body {
 .schedule-row {
     display: flex;
     align-items: center;
+    justify-content: center;
 }
 
 .select-box {
@@ -106,25 +108,21 @@ body {
 }
 
 .date-box {
-    width: 120px;
+    width: 100px;
     margin-left: 12px;
-    flex-grow: 1.52;
-    flex-shrink: 1;
-    min-width: 0;
+    flex-shrink: 0;
 }
 
 .time-box {
-    width: 104px;
-    flex-grow: 1.04;
-    flex-shrink: 1;
-    min-width: 0;
+    width: 70px;
+    flex-shrink: 0;
+    margin-left: 8px;
 }
 
 .people-box {
     width: 70px;
-    flex-grow: 0.70;
-    flex-shrink: 1;
-    min-width: 0;
+    flex-shrink: 0;
+    margin-left: 8px;
 }
 
 .select-box span {
@@ -203,7 +201,7 @@ body {
     color: var(--gray-text);
     font-size: 16px;
     cursor: pointer;
-    margin-top: 12px;
+    margin: 12px auto 0 auto;
     outline: none;
 }
 
