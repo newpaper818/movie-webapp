@@ -67,7 +67,7 @@
 
         .movie-header {
             flex: 1;
-            max-width: 350px;
+            max-width: 358px;
             height: 48px;
             background-color: var(--box-bg);
             border-radius: 12px;
@@ -105,17 +105,18 @@
 
         .select-box {
             height: 48px;
-            background-color: var(--box-bg);
+            /* background-color: var(--box-bg); */
             border-radius: 12px;
             display: flex;
             align-items: center;
-            padding: 0 12px;
+            padding: 0 0px;
             position: relative;
             cursor: pointer;
         }
 
         .date-box {
             width: 152px;
+            margin-left: 12px;
             flex-grow: 1.52;
             flex-shrink: 1;
             min-width: 0;
@@ -123,7 +124,7 @@
 
         .time-box {
             width: 104px;
-            margin-left: 12px;
+            /* margin-left: 12px; */
             flex-grow: 1.04;
             flex-shrink: 1;
             min-width: 0;
@@ -131,14 +132,14 @@
 
         .people-box {
             width: 70px;
-            margin-left: 12px;
+            /* margin-left: 12px; */
             flex-grow: 0.70;
             flex-shrink: 1;
             min-width: 0;
         }
 
         .select-box span {
-            font-size: 16px;
+            font-size: 13px;
             color: var(--text-color);
             margin-left: 8px;
             white-space: nowrap;
@@ -171,11 +172,11 @@
         }
 
         .action-icon.btn-delete {
-            margin-left: 12px;
+            margin-left: 8px;
         }
 
         .action-icon.btn-drag {
-            margin-left: 12px;
+            margin-left: 8px;
             touch-action: none;
         }
 
@@ -317,6 +318,11 @@
         .calendar-day.empty {
             cursor: default;
         }
+
+        /* Spacer to allow scrolling past the bottom bar */
+        .spacer {
+            height: 300px;
+        }
     </style>
 </head>
 <body>
@@ -324,6 +330,9 @@
     <div class="container">
         <!-- Dynamic Movies will be rendered here -->
         <div id="movies-container"></div>
+
+        <!-- Spacer Box -->
+        <div class="spacer"></div>
 
         <!-- Global Bottom Buttons -->
         <div class="bottom-bar">
@@ -668,6 +677,12 @@
         const calendarGrid = document.getElementById('calendar-grid');
 
         function openCalendar(movieIdx, scheduleIdx, targetElement) {
+            if (calendarPopup.style.display === 'block' && activeMovieIdx === movieIdx && activeScheduleIdx === scheduleIdx) {
+                calendarPopup.style.display = 'none';
+                activeMovieIdx = null;
+                activeScheduleIdx = null;
+                return;
+            }
             activeMovieIdx = movieIdx;
             activeScheduleIdx = scheduleIdx;
             
@@ -774,6 +789,8 @@
                 moviesState[activeMovieIdx].date_time[activeScheduleIdx].date = "";
             }
             calendarPopup.style.display = 'none';
+            activeMovieIdx = null;
+            activeScheduleIdx = null;
             renderState();
         });
 
@@ -781,6 +798,8 @@
         document.addEventListener('click', (e) => {
             if (!calendarPopup.contains(e.target)) {
                 calendarPopup.style.display = 'none';
+                activeMovieIdx = null;
+                activeScheduleIdx = null;
             }
         });
 
