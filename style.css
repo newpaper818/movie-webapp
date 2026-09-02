@@ -68,6 +68,16 @@ body {
     padding: 0 12px;
 }
 
+/* Wide header for Reres mode with seat box */
+body.mode-reres .movie-header {
+    width: 366px;
+    max-width: calc(100% - 40px);
+}
+
+body.mode-reres .schedule-row .date-box {
+    margin-left: 0;
+}
+
 .movie-title-input {
     background: transparent;
     border: none;
@@ -123,6 +133,27 @@ body {
     width: 70px;
     flex-shrink: 0;
     margin-left: 8px;
+}
+
+.seat-box {
+    width: 70px;
+    flex-shrink: 0;
+    margin-left: 8px;
+    cursor: text;
+}
+
+.seat-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    color: var(--text-color);
+    margin-left: 8px;
+}
+
+.seat-input::placeholder {
+    color: var(--gray-text);
 }
 
 .select-box span {

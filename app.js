@@ -1,11 +1,13 @@
-const tg = window.Telegram.WebApp;
+const tg = window.Telegram ? window.Telegram.WebApp : null;
 
 // Initialize Telegram Web App
-tg.ready();
-tg.expand();
+if (tg) {
+    tg.ready();
+    tg.expand();
 
-if (tg.colorScheme === 'dark') {
-    document.body.classList.add('dark');
+    if (tg.colorScheme === 'dark') {
+        document.body.classList.add('dark');
+    }
 }
 
 // Global State
@@ -19,17 +21,32 @@ const dayNames = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
 // 1. Initial State Loading from Query Params
 const urlParams = new URLSearchParams(window.location.search);
+let mode = urlParams.get('type') === 'reres' ? 'reres' : 'res';
 const dataParam = urlParams.get('data');
 const moviesParam = urlParams.get('movies');
+
+if (mode === 'reres') {
+    document.body.classList.add('mode-reres');
+}
 
 if (dataParam) {
     try {
         // Decode URL-encoded JSON structure
         const parsed = JSON.parse(decodeURIComponent(dataParam));
-        if (parsed && Array.isArray(parsed.movies)) {
-            moviesState = parsed.movies;
-        } else if (Array.isArray(parsed)) {
-            moviesState = parsed;
+        if (parsed) {
+            if (parsed.type) {
+                mode = parsed.type === 'reres' ? 'reres' : 'res';
+                if (mode === 'reres') {
+                    document.body.classList.add('mode-reres');
+                } else {
+                    document.body.classList.remove('mode-reres');
+                }
+            }
+            if (Array.isArray(parsed.movies)) {
+                moviesState = parsed.movies;
+            } else if (Array.isArray(parsed)) {
+                moviesState = parsed;
+            }
         }
     } catch (e) {
         console.error("Failed to parse data parameter:", e);
@@ -116,12 +133,14 @@ function renderState() {
                 row.dataset.scheduleIdx = scheduleIdx;
                 row.style.order = scheduleIdx;
 
-                // --- Calendar Clock Icon ---
-                const calendarClockIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                calendarClockIcon.setAttribute('class', 'icon schedule-icon');
-                calendarClockIcon.setAttribute('viewBox', '0 -960 960 960');
-                calendarClockIcon.innerHTML = `<path d="M200-640h560v-80H200v80Zm0 0v-80 80Zm0 560q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-40q0-17 11.5-28.5T280-880q17 0 28.5 11.5T320-840v40h320v-40q0-17 11.5-28.5T680-880q17 0 28.5 11.5T720-840v40h40q33 0 56.5 23.5T840-720v187q0 17-11.5 28.5T800-493q-17 0-28.5-11.5T760-533v-27H200v400h232q17 0 28.5 11.5T472-120q0 17-11.5 28.5T432-80H200Zm378.5-18.5Q520-157 520-240t58.5-141.5Q637-440 720-440t141.5 58.5Q920-323 920-240T861.5-98.5Q803-40 720-40T578.5-98.5ZM740-248v-92q0-8-6-14t-14-6q-8 0-14 6t-6 14v91q0 8 3 15.5t9 13.5l61 61q6 6 14 6t14-6q6-6 6-14t-6-14l-61-61Z"/>`;
-                row.appendChild(calendarClockIcon);
+                // --- Calendar Clock Icon (Only in Res mode) ---
+                if (mode !== 'reres') {
+                    const calendarClockIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                    calendarClockIcon.setAttribute('class', 'icon schedule-icon');
+                    calendarClockIcon.setAttribute('viewBox', '0 -960 960 960');
+                    calendarClockIcon.innerHTML = `<path d="M200-640h560v-80H200v80Zm0 0v-80 80Zm0 560q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-40q0-17 11.5-28.5T280-880q17 0 28.5 11.5T320-840v40h320v-40q0-17 11.5-28.5T680-880q17 0 28.5 11.5T720-840v40h40q33 0 56.5 23.5T840-720v187q0 17-11.5 28.5T800-493q-17 0-28.5-11.5T760-533v-27H200v400h232q17 0 28.5 11.5T472-120q0 17-11.5 28.5T432-80H200Zm378.5-18.5Q520-157 520-240t58.5-141.5Q637-440 720-440t141.5 58.5Q920-323 920-240T861.5-98.5Q803-40 720-40T578.5-98.5ZM740-248v-92q0-8-6-14t-14-6q-8 0-14 6t-6 14v91q0 8 3 15.5t9 13.5l61 61q6 6 14 6t14-6q6-6 6-14t-6-14l-61-61Z"/>`;
+                    row.appendChild(calendarClockIcon);
+                }
 
                 // --- Date Box ---
                 const dateBox = document.createElement('div');
@@ -143,11 +162,18 @@ function renderState() {
                 const timeBox = document.createElement('div');
                 timeBox.className = 'select-box time-box';
                 
+                let rawTimeHour = 12;
+                if (schedule.time !== undefined && schedule.time !== null) {
+                    if (typeof schedule.time === 'string' && schedule.time.includes(':')) {
+                        rawTimeHour = parseInt(schedule.time.split(':')[0]) || 0;
+                    } else {
+                        rawTimeHour = parseInt(schedule.time) || 0;
+                    }
+                }
+
                 const formatTime = (h) => `${h.toString().padStart(2, '0')}:00`;
-                const currentTimeVal = schedule.time !== undefined ? parseInt(schedule.time) : 12;
-                
                 timeBox.innerHTML = `
-                    <span>${formatTime(currentTimeVal)}</span>
+                    <span>${formatTime(rawTimeHour)}</span>
                 `;
                 
                 const timeSelect = document.createElement('select');
@@ -156,11 +182,16 @@ function renderState() {
                     const opt = document.createElement('option');
                     opt.value = h;
                     opt.textContent = formatTime(h);
-                    if (h === currentTimeVal) opt.selected = true;
+                    if (h === rawTimeHour) opt.selected = true;
                     timeSelect.appendChild(opt);
                 }
                 timeSelect.addEventListener('change', (e) => {
-                    schedule.time = parseInt(e.target.value);
+                    const selectedH = parseInt(e.target.value);
+                    if (mode === 'reres') {
+                        schedule.time = `${selectedH.toString().padStart(2, '0')}:00`;
+                    } else {
+                        schedule.time = selectedH;
+                    }
                     renderState();
                 });
                 timeBox.appendChild(timeSelect);
@@ -185,7 +216,7 @@ function renderState() {
                 for (let p = 1; p <= 8; p++) {
                     const opt = document.createElement('option');
                     opt.value = p;
-                    opt.textContent = p;
+                    opt.textContent = `${p} seat(s)`;
                     if (p === currentPeopleVal) opt.selected = true;
                     peopleSelect.appendChild(opt);
                 }
@@ -196,21 +227,40 @@ function renderState() {
                 peopleBox.appendChild(peopleSelect);
                 row.appendChild(peopleBox);
 
-                // --- Delete Button (X) SVG (close_24dp) ---
-                const btnDelete = document.createElement('div');
-                btnDelete.className = 'action-icon btn-delete';
-                btnDelete.innerHTML = `
+                // --- [NEW] Seat Box (Only in Reres mode) ---
+                if (mode === 'reres') {
+                    const seatBox = document.createElement('div');
+                    seatBox.className = 'select-box seat-box';
+                    
+                    const seatInput = document.createElement('input');
+                    seatInput.type = 'text';
+                    seatInput.className = 'seat-input';
+                    seatInput.placeholder = 'C5';
+                    seatInput.value = schedule.last_seat || '';
+                    seatInput.maxLength = 10;
+                    seatInput.addEventListener('input', (e) => {
+                        schedule.last_seat = e.target.value;
+                    });
+                    
+                    seatBox.appendChild(seatInput);
+                    row.appendChild(seatBox);
+                }
+
+                // --- Delete Schedule Button (X) SVG (close_24dp) ---
+                const btnDeleteSchedule = document.createElement('div');
+                btnDeleteSchedule.className = 'action-icon btn-delete';
+                btnDeleteSchedule.innerHTML = `
                     <svg viewBox="0 -960 960 960" style="width:24px; height:24px;">
                         <path d="M480-424 284-228q-11 11-28 11t-28-11q-11-11-11-28t11-28l196-196-196-196q-11-11-11-28t11-28q11-11 28-11t28 11l196 196 196-196q11-11 28-11t28 11q11 11 11 28t-11 28L536-480l196 196q11 11 11 28t-11 28q-11 11-28 11t-28-11L480-424Z"/>
                     </svg>
                 `;
-                btnDelete.addEventListener('click', () => {
+                btnDeleteSchedule.addEventListener('click', () => {
                     movie.date_time.splice(scheduleIdx, 1);
                     renderState();
                 });
-                row.appendChild(btnDelete);
+                row.appendChild(btnDeleteSchedule);
 
-                // --- Drag Handle (=) SVG (drag_handle_24dp) ---
+                // --- Drag Handle Button (drag_handle_24dp) ---
                 const btnDrag = document.createElement('div');
                 btnDrag.className = 'action-icon btn-drag';
                 btnDrag.innerHTML = `
@@ -218,90 +268,62 @@ function renderState() {
                         <path d="M200-360q-17 0-28.5-11.5T160-400q0-17 11.5-28.5T200-440h560q17 0 28.5 11.5T800-400q0 17-11.5 28.5T760-360H200Zm0-160q-17 0-28.5-11.5T160-560q0-17 11.5-28.5T200-600h560q17 0 28.5 11.5T800-560q0 17-11.5 28.5T760-520H200Z"/>
                     </svg>
                 `;
-
-                // Drag & Drop Pointer Event Handlers (Works on mobile touch and desktop mouse)
+                
+                // Pointer event based drag & drop
                 btnDrag.addEventListener('pointerdown', (e) => {
-                    if (e.button !== 0 && e.pointerType === 'mouse') return;
-                    
-                    row.classList.add('dragging');
+                    e.preventDefault();
                     btnDrag.setPointerCapture(e.pointerId);
-                    
-                    const startY = e.clientY;
-                    const parent = row.parentNode;
-                    const siblings = Array.from(parent.querySelectorAll('.schedule-row'));
-                    const initialIdx = siblings.indexOf(row);
-                    
-                    // Measure distance between rows
-                    let rowDistance = row.offsetHeight + 12; // fallback (height + gap)
-                    if (siblings.length > 1) {
-                        const rect0 = siblings[0].getBoundingClientRect();
-                        const rect1 = siblings[1].getBoundingClientRect();
-                        rowDistance = Math.abs(rect1.top - rect0.top);
-                    }
-                    
-                    // Set styles for siblings to transition smoothly
-                    siblings.forEach((sib, idx) => {
-                        if (idx !== initialIdx) {
-                            sib.style.transition = 'transform 0.2s cubic-bezier(0.2, 0, 0, 1)';
-                        }
-                    });
-                    
+
+                    const initialY = e.clientY;
+                    const initialIdx = scheduleIdx;
                     let currentVisualIdx = initialIdx;
-                    
-                    const onPointerMove = (moveEv) => {
-                        const deltaY = moveEv.clientY - startY;
+
+                    row.classList.add('dragging');
+
+                    const onPointerMove = (moveEvent) => {
+                        const deltaY = moveEvent.clientY - initialY;
                         row.style.transform = `translateY(${deltaY}px)`;
-                        
-                        // Calculate target index
-                        const rawTargetIdx = initialIdx + deltaY / rowDistance;
-                        const targetIdx = Math.max(0, Math.min(siblings.length - 1, Math.round(rawTargetIdx)));
-                        
-                        currentVisualIdx = targetIdx;
-                        
-                        siblings.forEach((sib, idx) => {
-                            if (idx === initialIdx) return;
-                            
-                            // If index is between initial and target index, shift it
-                            if (initialIdx < targetIdx && idx > initialIdx && idx <= targetIdx) {
-                                // Dragged down, shift siblings up
-                                sib.style.transform = `translateY(${-rowDistance}px)`;
-                            } else if (initialIdx > targetIdx && idx < initialIdx && idx >= targetIdx) {
-                                // Dragged up, shift siblings down
-                                sib.style.transform = `translateY(${rowDistance}px)`;
-                            } else {
-                                // Reset transform
-                                sib.style.transform = '';
-                            }
-                        });
+
+                        const rowHeight = row.offsetHeight + 12; // gap
+                        const offsetIdx = Math.round(deltaY / rowHeight);
+                        let targetIdx = initialIdx + offsetIdx;
+                        targetIdx = Math.max(0, Math.min(movie.date_time.length - 1, targetIdx));
+
+                        if (targetIdx !== currentVisualIdx) {
+                            currentVisualIdx = targetIdx;
+                            const siblingRows = Array.from(scheduleList.querySelectorAll('.schedule-row'));
+                            siblingRows.forEach((r) => {
+                                const sIdx = parseInt(r.dataset.scheduleIdx);
+                                if (sIdx === initialIdx) return;
+                                
+                                let visualOrder = sIdx;
+                                if (initialIdx < currentVisualIdx) {
+                                    if (sIdx > initialIdx && sIdx <= currentVisualIdx) visualOrder = sIdx - 1;
+                                } else if (initialIdx > currentVisualIdx) {
+                                    if (sIdx >= currentVisualIdx && sIdx < initialIdx) visualOrder = sIdx + 1;
+                                }
+                                r.style.order = visualOrder;
+                            });
+                            row.style.order = currentVisualIdx;
+                        }
                     };
-                    
-                    const onPointerUp = (upEv) => {
+
+                    const onPointerUp = (upEvent) => {
                         btnDrag.removeEventListener('pointermove', onPointerMove);
                         btnDrag.removeEventListener('pointerup', onPointerUp);
                         btnDrag.removeEventListener('pointercancel', onPointerUp);
                         btnDrag.removeEventListener('lostpointercapture', onPointerUp);
-                        
-                        if (btnDrag.hasPointerCapture(upEv.pointerId)) {
-                            btnDrag.releasePointerCapture(upEv.pointerId);
-                        }
-                        
+
                         row.classList.remove('dragging');
-                        
-                        // Reset all temporary transforms and transitions
-                        siblings.forEach(sib => {
-                            sib.style.transform = '';
-                            sib.style.transition = '';
-                        });
-                        
-                        // Update moviesState with the new visual order
-                        const activeDragMovieIdx = movieIdx;
-                        const schedules = moviesState[activeDragMovieIdx].date_time;
+                        row.style.transform = '';
+
+                        const schedules = moviesState[movieIdx].date_time;
                         const [draggedItem] = schedules.splice(initialIdx, 1);
                         schedules.splice(currentVisualIdx, 0, draggedItem);
                         
                         renderState();
                     };
-                    
+
                     btnDrag.addEventListener('pointermove', onPointerMove);
                     btnDrag.addEventListener('pointerup', onPointerUp);
                     btnDrag.addEventListener('pointercancel', onPointerUp);
@@ -329,13 +351,24 @@ function renderState() {
             if (!movie.date_time) {
                 movie.date_time = [];
             }
-            movie.date_time.push({
-                start: false,
-                date: "",
-                time: 12,
-                people: 1,
-                link: ""
-            });
+            if (mode === 'reres') {
+                movie.date_time.push({
+                    start: true,
+                    date: "",
+                    time: "21:00",
+                    people: 2,
+                    last_seat: "C5",
+                    link: ""
+                });
+            } else {
+                movie.date_time.push({
+                    start: false,
+                    date: "",
+                    time: 12,
+                    people: 1,
+                    link: ""
+                });
+            }
             renderState();
         });
         movieGroup.appendChild(addScheduleBtn);
@@ -499,18 +532,42 @@ document.getElementById('btn-save-action').addEventListener('click', () => {
         return movie.title.trim() !== '' || (movie.date_time && movie.date_time.length > 0);
     });
 
-    // Ensure titles are trimmed
+    // Ensure titles are trimmed and formatted according to mode
     cleanedMovies.forEach(movie => {
         movie.title = movie.title.trim();
+        if (Array.isArray(movie.date_time)) {
+            movie.date_time.forEach(dt => {
+                if (mode === 'reres') {
+                    dt.start = dt.start !== undefined ? dt.start : true;
+                    if (typeof dt.time === 'number') {
+                        dt.time = `${dt.time.toString().padStart(2, '0')}:00`;
+                    }
+                    dt.last_seat = (dt.last_seat || '').trim();
+                    dt.link = dt.link || "";
+                } else {
+                    dt.start = false;
+                    if (typeof dt.time === 'string') {
+                        dt.time = parseInt(dt.time) || 12;
+                    }
+                    dt.link = dt.link || "";
+                }
+            });
+        }
     });
 
     const payload = {
+        type: mode,
         movies: cleanedMovies
     };
 
     // Send back to Telegram bot and close Web App
-    tg.sendData(JSON.stringify(payload));
-    tg.close();
+    if (tg && typeof tg.sendData === 'function') {
+        tg.sendData(JSON.stringify(payload));
+        tg.close();
+    } else {
+        console.log("Mock Save Payload:", payload);
+        alert(`[${mode.toUpperCase()}] Saved:\n` + JSON.stringify(payload, null, 2));
+    }
 });
 
 // Initial rendering
