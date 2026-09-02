@@ -31,8 +31,13 @@ if (mode === 'reres') {
 
 if (dataParam) {
     try {
-        // Decode URL-encoded JSON structure
-        const parsed = JSON.parse(decodeURIComponent(dataParam));
+        // Decode URL-encoded JSON structure safely
+        let parsed = null;
+        try {
+            parsed = JSON.parse(dataParam);
+        } catch (e1) {
+            parsed = JSON.parse(decodeURIComponent(dataParam));
+        }
         if (parsed) {
             if (parsed.type) {
                 mode = parsed.type === 'reres' ? 'reres' : 'res';
