@@ -58,7 +58,7 @@ body {
 }
 
 .movie-header {
-    width: 336px;
+    width: 316px;
     flex-shrink: 0;
     height: 48px;
     background-color: var(--box-bg);
@@ -70,7 +70,7 @@ body {
 
 /* Wide header for Reres mode with seat box */
 body.mode-reres .movie-header {
-    width: 366px;
+    width: 326px;
     max-width: calc(100% - 40px);
 }
 
@@ -104,6 +104,7 @@ body.mode-reres .schedule-row .date-box {
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1);
 }
 
 .select-box {
@@ -130,13 +131,13 @@ body.mode-reres .schedule-row .date-box {
 }
 
 .people-box {
-    width: 70px;
+    width: 50px;
     flex-shrink: 0;
     margin-left: 8px;
 }
 
 .seat-box {
-    width: 70px;
+    width: 50px;
     flex-shrink: 0;
     margin-left: 8px;
     cursor: text;
@@ -217,6 +218,7 @@ body.mode-reres .schedule-row .date-box {
     cursor: grabbing;
     user-select: none;
     -webkit-user-select: none;
+    transition: none !important;
 }
 
 /* Add Schedule Button */

@@ -136,7 +136,6 @@ function renderState() {
                 const row = document.createElement('div');
                 row.className = 'schedule-row';
                 row.dataset.scheduleIdx = scheduleIdx;
-                row.style.order = scheduleIdx;
 
                 // --- Calendar Clock Icon (Only in Res mode) ---
                 if (mode !== 'reres') {
@@ -269,70 +268,111 @@ function renderState() {
                 const btnDrag = document.createElement('div');
                 btnDrag.className = 'action-icon btn-drag';
                 btnDrag.innerHTML = `
-                    <svg viewBox="0 -960 960 960" style="width:24px; height:24px;">
-                        <path d="M200-360q-17 0-28.5-11.5T160-400q0-17 11.5-28.5T200-440h560q17 0 28.5 11.5T800-400q0 17-11.5 28.5T760-360H200Zm0-160q-17 0-28.5-11.5T160-560q0-17 11.5-28.5T200-600h560q17 0 28.5 11.5T800-560q0 17-11.5 28.5T760-520H200Z"/>
+                    <svg viewBox="0 -960 960 960" style="width:24px; height:24px; pointer-events: none;">
+                        <path d="M200-360q-17 0-28.5-11.5T160-400q0-17 11.5-28.5T200-440h560q17 0 28.5 11.5T800-400q0 17-11.5 28.5T760-360H200Zm0-160q-17 0-28.5-11.5T160-560q0-17 11.5-28.5T200-600h560q17 0 28.5 11.5T800-560q0 17-11.5 28.5T760-520H200Z" pointer-events="none"/>
                     </svg>
                 `;
                 
                 // Pointer event based drag & drop
                 btnDrag.addEventListener('pointerdown', (e) => {
+                    if (e.button !== 0) return; // Only primary mouse button / touch
                     e.preventDefault();
+
+                    const allRows = Array.from(scheduleList.querySelectorAll('.schedule-row'));
+                    const totalRows = allRows.length;
+                    if (totalRows <= 1) return;
+
                     btnDrag.setPointerCapture(e.pointerId);
 
-                    const initialY = e.clientY;
+                    const initialPageY = e.pageY || (e.clientY + window.scrollY);
                     const initialIdx = scheduleIdx;
                     let currentVisualIdx = initialIdx;
 
+                    let rowSpacing = row.offsetHeight + 12;
+                    if (allRows.length >= 2) {
+                        const r0 = allRows[0].getBoundingClientRect();
+                        const r1 = allRows[1].getBoundingClientRect();
+                        rowSpacing = r1.top - r0.top;
+                    }
+
                     row.classList.add('dragging');
 
+                    let isCleanedUp = false;
+
+                    const updateSiblingPositions = (targetIdx) => {
+                        allRows.forEach((r, idx) => {
+                            if (idx === initialIdx) return;
+                            if (initialIdx < targetIdx) {
+                                // Dragged downwards: items between initialIdx and targetIdx shift up
+                                if (idx > initialIdx && idx <= targetIdx) {
+                                    r.style.transform = `translateY(-${rowSpacing}px)`;
+                                } else {
+                                    r.style.transform = '';
+                                }
+                            } else if (initialIdx > targetIdx) {
+                                // Dragged upwards: items between targetIdx and initialIdx shift down
+                                if (idx >= targetIdx && idx < initialIdx) {
+                                    r.style.transform = `translateY(${rowSpacing}px)`;
+                                } else {
+                                    r.style.transform = '';
+                                }
+                            } else {
+                                r.style.transform = '';
+                            }
+                        });
+                    };
+
                     const onPointerMove = (moveEvent) => {
-                        const deltaY = moveEvent.clientY - initialY;
+                        if (isCleanedUp) return;
+                        const currentPageY = moveEvent.pageY || (moveEvent.clientY + window.scrollY);
+                        const deltaY = currentPageY - initialPageY;
                         row.style.transform = `translateY(${deltaY}px)`;
 
-                        const rowHeight = row.offsetHeight + 12; // gap
-                        const offsetIdx = Math.round(deltaY / rowHeight);
+                        const offsetIdx = Math.round(deltaY / rowSpacing);
                         let targetIdx = initialIdx + offsetIdx;
-                        targetIdx = Math.max(0, Math.min(movie.date_time.length - 1, targetIdx));
+                        targetIdx = Math.max(0, Math.min(totalRows - 1, targetIdx));
 
                         if (targetIdx !== currentVisualIdx) {
                             currentVisualIdx = targetIdx;
-                            const siblingRows = Array.from(scheduleList.querySelectorAll('.schedule-row'));
-                            siblingRows.forEach((r) => {
-                                const sIdx = parseInt(r.dataset.scheduleIdx);
-                                if (sIdx === initialIdx) return;
-                                
-                                let visualOrder = sIdx;
-                                if (initialIdx < currentVisualIdx) {
-                                    if (sIdx > initialIdx && sIdx <= currentVisualIdx) visualOrder = sIdx - 1;
-                                } else if (initialIdx > currentVisualIdx) {
-                                    if (sIdx >= currentVisualIdx && sIdx < initialIdx) visualOrder = sIdx + 1;
-                                }
-                                r.style.order = visualOrder;
-                            });
-                            row.style.order = currentVisualIdx;
+                            updateSiblingPositions(currentVisualIdx);
                         }
                     };
 
-                    const onPointerUp = (upEvent) => {
+                    const cleanup = () => {
+                        if (isCleanedUp) return;
+                        isCleanedUp = true;
+
+                        try {
+                            btnDrag.releasePointerCapture(e.pointerId);
+                        } catch (err) {}
+
                         btnDrag.removeEventListener('pointermove', onPointerMove);
                         btnDrag.removeEventListener('pointerup', onPointerUp);
-                        btnDrag.removeEventListener('pointercancel', onPointerUp);
-                        btnDrag.removeEventListener('lostpointercapture', onPointerUp);
+                        btnDrag.removeEventListener('pointercancel', cleanup);
+                        btnDrag.removeEventListener('lostpointercapture', cleanup);
 
                         row.classList.remove('dragging');
-                        row.style.transform = '';
+                        allRows.forEach(r => {
+                            r.style.transform = '';
+                        });
 
-                        const schedules = moviesState[movieIdx].date_time;
-                        const [draggedItem] = schedules.splice(initialIdx, 1);
-                        schedules.splice(currentVisualIdx, 0, draggedItem);
+                        if (currentVisualIdx !== initialIdx) {
+                            const schedules = movie.date_time;
+                            const [draggedItem] = schedules.splice(initialIdx, 1);
+                            schedules.splice(currentVisualIdx, 0, draggedItem);
+                        }
                         
                         renderState();
                     };
 
+                    const onPointerUp = () => {
+                        cleanup();
+                    };
+
                     btnDrag.addEventListener('pointermove', onPointerMove);
                     btnDrag.addEventListener('pointerup', onPointerUp);
-                    btnDrag.addEventListener('pointercancel', onPointerUp);
-                    btnDrag.addEventListener('lostpointercapture', onPointerUp);
+                    btnDrag.addEventListener('pointercancel', cleanup);
+                    btnDrag.addEventListener('lostpointercapture', cleanup);
                 });
                 row.appendChild(btnDrag);
 
